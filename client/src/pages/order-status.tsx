@@ -1,17 +1,13 @@
 import { useEffect, useState } from "react";
-import { useParams, useLocation } from "wouter";
+import { useParams } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { CheckCircle2, Clock, ChefHat, TruckIcon } from "lucide-react";
 import { type Order, type OrderItem } from "@shared/schema";
-import { Button } from "@/components/ui/button";
 
 interface OrderWithItems extends Order {
   items: OrderItem[];
-  tip?: number;
-  finalTotal?: number;
-  isPaid?: boolean;
 }
 
 const STATUS_STEPS = {
@@ -28,15 +24,12 @@ export default function OrderStatus() {
   const { orderId } = useParams();
   const [order, setOrder] = useState<OrderWithItems | null>(null);
   const [loading, setLoading] = useState(true);
-  const [, setLocation] = useLocation();
 
   useEffect(() => {
-    if (!orderId) return;
-
     // Load order from localStorage
     const orders = JSON.parse(localStorage.getItem("orders") || "{}");
-    const currentOrder = orders[orderId] as OrderWithItems | undefined;
-    setOrder(currentOrder || null);
+    const currentOrder = orders[orderId];
+    setOrder(currentOrder);
     setLoading(false);
 
     // Simulate status changes every 10 seconds for development
@@ -54,10 +47,8 @@ export default function OrderStatus() {
 
         // Update in localStorage
         const orders = JSON.parse(localStorage.getItem("orders") || "{}");
-        if (orderId) {
-          orders[orderId] = updatedOrder;
-          localStorage.setItem("orders", JSON.stringify(orders));
-        }
+        orders[orderId] = updatedOrder;
+        localStorage.setItem("orders", JSON.stringify(orders));
 
         return updatedOrder;
       });
@@ -147,30 +138,10 @@ export default function OrderStatus() {
               </div>
             ))}
             <Separator />
-            <div className="flex justify-between items-center">
-              <span>Subtotal</span>
-              <span>${Number(order.total).toFixed(2)}</span>
-            </div>
-            {order.tip !== undefined && (
-              <div className="flex justify-between items-center">
-                <span>Tip</span>
-                <span>${order.tip.toFixed(2)}</span>
-              </div>
-            )}
             <div className="flex justify-between items-center font-medium">
               <span>Total</span>
-              <span>
-                ${(order.finalTotal ?? order.total).toFixed(2)}
-              </span>
+              <span>${Number(order.total).toFixed(2)}</span>
             </div>
-            {!order.isPaid && (
-              <Button
-                className="w-full mt-4"
-                onClick={() => setLocation(`/payment/${order.id}`)}
-              >
-                Pay Now
-              </Button>
-            )}
           </div>
         </CardContent>
       </Card>
