@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { useParams } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -17,15 +17,47 @@ const STATUS_STEPS = {
   completed: { progress: 100, icon: CheckCircle2, label: "Completed", description: "Enjoy your meal!" },
 };
 
+// Mock status progression for development
+const STATUS_SEQUENCE = ["pending", "preparing", "ready", "completed"] as const;
+
 export default function OrderStatus() {
   const { orderId } = useParams();
+  const [order, setOrder] = useState<OrderWithItems | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const { data: order, isLoading } = useQuery<OrderWithItems>({
-    queryKey: [`/api/orders/${orderId}`],
-    refetchInterval: 10000, // Polling every 10 seconds
-  });
+  useEffect(() => {
+    // Load order from localStorage
+    const orders = JSON.parse(localStorage.getItem("orders") || "{}");
+    const currentOrder = orders[orderId];
+    setOrder(currentOrder);
+    setLoading(false);
 
-  if (isLoading) {
+    // Simulate status changes every 10 seconds for development
+    const interval = setInterval(() => {
+      setOrder(prevOrder => {
+        if (!prevOrder) return null;
+
+        const currentStatusIndex = STATUS_SEQUENCE.indexOf(prevOrder.status as typeof STATUS_SEQUENCE[number]);
+        const nextStatusIndex = (currentStatusIndex + 1) % STATUS_SEQUENCE.length;
+
+        const updatedOrder = {
+          ...prevOrder,
+          status: STATUS_SEQUENCE[nextStatusIndex]
+        };
+
+        // Update in localStorage
+        const orders = JSON.parse(localStorage.getItem("orders") || "{}");
+        orders[orderId] = updatedOrder;
+        localStorage.setItem("orders", JSON.stringify(orders));
+
+        return updatedOrder;
+      });
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [orderId]);
+
+  if (loading) {
     return (
       <div className="p-4">
         <Card>
@@ -53,7 +85,7 @@ export default function OrderStatus() {
     );
   }
 
-  const status = STATUS_STEPS[order.status];
+  const status = STATUS_STEPS[order.status as keyof typeof STATUS_STEPS];
   const StatusIcon = status.icon;
 
   return (

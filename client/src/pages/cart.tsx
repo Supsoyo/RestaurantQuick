@@ -1,11 +1,9 @@
 import { useState } from "react";
 import { useParams, useLocation } from "wouter";
-import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
 import { type MenuItem } from "@shared/schema";
 import { ArrowLeft, Minus, Plus, Trash2 } from "lucide-react";
 
@@ -17,40 +15,52 @@ export default function Cart() {
   const { tableId } = useParams();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const [items, setItems] = useState<CartItem[]>(() => 
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [items, setItems] = useState<CartItem[]>(() =>
     JSON.parse(localStorage.getItem("cart") || "[]")
   );
 
-  const orderMutation = useMutation({
-    mutationFn: async () => {
-      const total = items.reduce((sum, item) => 
-        sum + Number(item.price) * item.quantity, 0
-      );
+  const handlePlaceOrder = () => {
+    setIsPlacingOrder(true);
 
-      const response = await apiRequest("POST", "/api/orders", {
-        tableId: Number(tableId),
-        total,
-        items: items.map(item => ({
-          menuItemId: item.id,
-          quantity: item.quantity,
-          price: Number(item.price),
-        })),
-      });
+    // Calculate total
+    const total = items.reduce((sum, item) =>
+      sum + Number(item.price) * item.quantity, 0
+    );
 
-      return response.json();
-    },
-    onSuccess: (data) => {
-      localStorage.removeItem("cart");
-      setLocation(`/order/${data.id}`);
-    },
-    onError: () => {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to place order. Please try again.",
-      });
-    },
-  });
+    // Create mock order
+    const mockOrder = {
+      id: Math.floor(Math.random() * 1000) + 1,
+      tableId: Number(tableId),
+      status: "pending",
+      total,
+      items: items.map((item) => ({
+        id: Math.floor(Math.random() * 1000) + 1,
+        orderId: 0,
+        menuItemId: item.id,
+        quantity: item.quantity,
+        price: Number(item.price),
+      })),
+      createdAt: new Date().toISOString(),
+    };
+
+    // Store mock order in localStorage
+    const orders = JSON.parse(localStorage.getItem("orders") || "{}");
+    orders[mockOrder.id] = mockOrder;
+    localStorage.setItem("orders", JSON.stringify(orders));
+
+    // Clear cart
+    localStorage.removeItem("cart");
+
+    // Show success message
+    toast({
+      title: "Order Placed!",
+      description: `Your order #${mockOrder.id} has been placed successfully.`,
+    });
+
+    // Redirect to order status page
+    setLocation(`/order/${mockOrder.id}`);
+  };
 
   const updateQuantity = (index: number, newQuantity: number) => {
     if (newQuantity < 1) {
@@ -60,14 +70,14 @@ export default function Cart() {
       return;
     }
 
-    const newItems = items.map((item, i) => 
+    const newItems = items.map((item, i) =>
       i === index ? { ...item, quantity: newQuantity } : item
     );
     setItems(newItems);
     localStorage.setItem("cart", JSON.stringify(newItems));
   };
 
-  const total = items.reduce((sum, item) => 
+  const total = items.reduce((sum, item) =>
     sum + Number(item.price) * item.quantity, 0
   );
 
@@ -152,10 +162,10 @@ export default function Cart() {
               </div>
               <Button
                 className="w-full mt-4"
-                onClick={() => orderMutation.mutate()}
-                disabled={orderMutation.isPending}
+                onClick={handlePlaceOrder}
+                disabled={isPlacingOrder}
               >
-                {orderMutation.isPending ? "Placing Order..." : "Place Order"}
+                {isPlacingOrder ? "Placing Order..." : "Place Order"}
               </Button>
             </CardContent>
           </Card>
