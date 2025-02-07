@@ -35,7 +35,7 @@ export default function CallWaiterButton({ tableId }: CallWaiterButtonProps) {
     <Button
       variant="outline"
       size="icon"
-      className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-lg bg-background hover:bg-primary hover:text-primary-foreground"
+      className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground z-50"
       onClick={handleCallWaiter}
       disabled={calling}
     >
