@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { type MenuItem } from "@shared/schema";
 import { ArrowLeft, Minus, Plus, Trash2 } from "lucide-react";
+import CallWaiterButton from "@/components/call-waiter-button";
 
 interface CartItem extends MenuItem {
   quantity: number;
@@ -171,6 +172,7 @@ export default function Cart() {
           </Card>
         </div>
       )}
+      {tableId && <CallWaiterButton tableId={tableId} />}
     </div>
   );
 }

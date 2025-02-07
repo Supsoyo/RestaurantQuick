@@ -4,6 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart } from "lucide-react";
 import MenuItemCard from "@/components/menu-item-card";
+import CallWaiterButton from "@/components/call-waiter-button";
 import { type MenuItem } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
@@ -19,7 +20,7 @@ export default function Menu() {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
     cart.push({ ...item, quantity });
     localStorage.setItem("cart", JSON.stringify(cart));
-    
+
     toast({
       title: "Added to cart",
       description: `${quantity}x ${item.name}`,
@@ -69,6 +70,8 @@ export default function Menu() {
           </section>
         ))}
       </main>
+
+      {tableId && <CallWaiterButton tableId={tableId} />}
     </div>
   );
 }
