@@ -7,6 +7,7 @@ import Home from "@/pages/home";
 import Menu from "@/pages/menu";
 import Cart from "@/pages/cart";
 import OrderStatus from "@/pages/order-status";
+import Payment from "@/pages/payment";
 
 function Router() {
   return (
@@ -16,6 +17,7 @@ function Router() {
       <Route path="/menu/:tableId" component={Menu} />
       <Route path="/cart/:tableId" component={Cart} />
       <Route path="/order/:orderId" component={OrderStatus} />
+      <Route path="/payment/:orderId" component={Payment} />
       <Route component={NotFound} />
     </Switch>
   );
