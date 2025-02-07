@@ -11,8 +11,7 @@ import OrderStatus from "@/pages/order-status";
 function Router() {
   return (
     <Switch>
-      {/* <Route path="/" component={Home} /> */}
-      <Route path="/" component={Menu} />
+      <Route path="/" component={Home} />
       <Route path="/menu/:tableId" component={Menu} />
       <Route path="/cart/:tableId" component={Cart} />
       <Route path="/order/:orderId" component={OrderStatus} />
