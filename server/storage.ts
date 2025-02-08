@@ -36,20 +36,40 @@ export class MemStorage implements IStorage {
   private initializeSampleData() {
     const sampleMenuItems: InsertMenuItem[] = [
       {
-        name: "Classic Burger",
-        description: "Juicy beef patty with lettuce, tomato, and special sauce",
-        price: "12.99",
-        category: "Mains",
+        name: "כריך המיוחד",
+        description: "עגבניה, בצל, חסה, רוטב הבית",
+        price: "59.00",
+        category: "המיוחדות שלנו",
         imageUrl: "https://images.unsplash.com/photo-1470337458703-46ad1756a187",
       },
       {
-        name: "Caesar Salad",
-        description: "Crispy romaine lettuce with parmesan and croutons",
-        price: "9.99",
-        category: "Starters",
-        imageUrl: "https://images.unsplash.com/photo-1494390248081-4e521a5940db",
+        name: "המבורגר קלאסי",
+        description: "נתחי בקר טרי, חסה, עגבניה ורוטב הבית",
+        price: "59.00",
+        category: "ראשונות",
+        imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd",
       },
-      // Add more sample items...
+      {
+        name: "סלט ירקות",
+        description: "ירקות טריים, שמן זית וחומץ בלסמי",
+        price: "45.00",
+        category: "ראשונות",
+        imageUrl: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd",
+      },
+      {
+        name: "פסטה ברוטב עגבניות",
+        description: "פסטה טרייה ברוטב עגבניות ביתי",
+        price: "52.00",
+        category: "עיקריות",
+        imageUrl: "https://images.unsplash.com/photo-1473093295043-cdd812d0e601",
+      },
+      {
+        name: "טירמיסו",
+        description: "קינוח איטלקי קלאסי",
+        price: "32.00",
+        category: "קינוחים",
+        imageUrl: "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9",
+      },
     ];
 
     sampleMenuItems.forEach((item) => {

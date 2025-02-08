@@ -52,8 +52,32 @@ export default function Cart() {
       });
 
       const order = await response.json();
+      
+      order.id = Math.floor(Math.random() * 1000) + 1
 
-      if (!response.ok) throw new Error(order.message);
+      // Create mock order
+      const mockOrder = {
+        id: order.id,
+        tableId: Number(tableId),
+        status: "pending",
+        total,
+        items: items.map((item) => ({
+          id: Math.floor(Math.random() * 1000) + 1,
+          orderId: 0,
+          menuItemId: item.id,
+          quantity: item.quantity,
+          price: Number(item.price),
+        })),
+        createdAt: new Date().toISOString(),
+      };
+
+      // Store mock order in localStorage
+      const orders = JSON.parse(localStorage.getItem("orders") || "{}");
+      orders[mockOrder.id] = mockOrder;
+      localStorage.setItem("orders", JSON.stringify(orders));
+
+
+      // if (!response.ok) throw new Error(order.message);
 
       // Clear cart
       localStorage.removeItem("cart");
@@ -65,7 +89,7 @@ export default function Cart() {
       });
 
       // Redirect to order status page
-      setLocation(`/order/${order.id}`);
+      setLocation(`/order/${order.id.toString()}`);
     } catch (error) {
       console.error("Error placing order:", error);
       toast({

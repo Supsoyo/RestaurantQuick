@@ -22,14 +22,14 @@ export default function Menu() {
     localStorage.setItem("cart", JSON.stringify(cart));
 
     toast({
-      title: "Added to cart",
+      title: "נוסף לסל",
       description: `${quantity}x ${item.name}`,
     });
   };
 
   if (isLoading) {
     return (
-      <div className="p-4 space-y-4">
+      <div className="p-4 space-y-4" dir="rtl">
         {[...Array(4)].map((_, i) => (
           <Skeleton key={i} className="h-[300px] w-full" />
         ))}
@@ -40,10 +40,10 @@ export default function Menu() {
   const categories = [...new Set(menuItems?.map(item => item.category))];
 
   return (
-    <div className="min-h-screen pb-20">
+    <div className="min-h-screen pb-20" dir="rtl">
       <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b p-4">
         <div className="flex justify-between items-center max-w-4xl mx-auto">
-          <h1 className="text-2xl font-bold">Menu</h1>
+          <h1 className="text-2xl font-bold">מה בא לנו היום?</h1>
           <Link href={`/cart/${tableId}`}>
             <Button variant="outline" size="icon">
               <ShoppingCart className="h-5 w-5" />
@@ -54,9 +54,11 @@ export default function Menu() {
 
       <main className="p-4 max-w-4xl mx-auto space-y-8">
         {categories.map(category => (
-          <section key={category}>
-            <h2 className="text-xl font-semibold mb-4">{category}</h2>
-            <div className="grid gap-4 sm:grid-cols-2">
+          <section key={category} className="bg-gray-50 rounded-lg p-4">
+            <h2 className="text-xl font-semibold mb-4 text-center bg-gray-200 py-2 rounded">
+              {category}
+            </h2>
+            <div className="grid gap-4 sm:grid-cols-1">
               {menuItems
                 ?.filter(item => item.category === category)
                 .map(item => (
