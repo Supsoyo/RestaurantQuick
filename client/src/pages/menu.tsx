@@ -27,6 +27,13 @@ export default function Menu() {
     });
   };
 
+  const scrollToCategory = (category: string) => {
+    const element = document.getElementById(`category-${category}`);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="p-4 space-y-4" dir="rtl">
@@ -41,8 +48,8 @@ export default function Menu() {
 
   return (
     <div className="min-h-screen pb-20" dir="rtl">
-      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b p-4">
-        <div className="flex justify-between items-center max-w-4xl mx-auto">
+      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b">
+        <div className="flex justify-between items-center max-w-4xl mx-auto p-4">
           <h1 className="text-2xl font-bold">מה בא לנו היום?</h1>
           <Link href={`/cart/${tableId}`}>
             <Button variant="outline" size="icon">
@@ -50,11 +57,30 @@ export default function Menu() {
             </Button>
           </Link>
         </div>
+
+        <div className="overflow-x-auto scrollbar-hide border-t bg-card">
+          <div className="flex gap-2 p-2 max-w-4xl mx-auto">
+            {categories.map(category => (
+              <Button
+                key={category}
+                variant="ghost"
+                className="whitespace-nowrap px-4"
+                onClick={() => scrollToCategory(category)}
+              >
+                {category}
+              </Button>
+            ))}
+          </div>
+        </div>
       </header>
 
       <main className="p-4 max-w-4xl mx-auto space-y-8">
         {categories.map(category => (
-          <section key={category} className="bg-gray-50 rounded-lg p-4">
+          <section 
+            key={category} 
+            id={`category-${category}`}
+            className="bg-gray-50 rounded-lg p-4 scroll-mt-32"
+          >
             <h2 className="text-xl font-semibold mb-4 text-center bg-gray-200 py-2 rounded">
               {category}
             </h2>
