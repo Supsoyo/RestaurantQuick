@@ -2,6 +2,13 @@ import type { Express } from "express";
 import { createServer } from "http";
 import { storage } from "./storage";
 import { insertOrderSchema } from "@shared/schema";
+import Stripe from "stripe";
+
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error("Missing STRIPE_SECRET_KEY");
+}
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export function registerRoutes(app: Express) {
   const server = createServer(app);
@@ -22,7 +29,26 @@ export function registerRoutes(app: Express) {
     res.json(item);
   });
 
-  // Create a new order
+  // Create a payment intent
+  app.post("/api/create-payment-intent", async (req, res) => {
+    try {
+      const { amount } = req.body;
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(amount * 100), // Convert to cents
+        currency: "usd",
+        automatic_payment_methods: {
+          enabled: true,
+        },
+      });
+
+      res.json({ clientSecret: paymentIntent.client_secret });
+    } catch (error) {
+      console.error("Error creating payment intent:", error);
+      res.status(500).json({ message: "Error creating payment intent" });
+    }
+  });
+
+  // Create a new order with payment
   app.post("/api/orders", async (req, res) => {
     const result = insertOrderSchema.safeParse(req.body);
     if (!result.success) {

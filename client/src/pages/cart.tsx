@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { type MenuItem } from "@shared/schema";
 import { ArrowLeft, Minus, Plus, Trash2 } from "lucide-react";
 import CallWaiterButton from "@/components/call-waiter-button";
+import PaymentForm from "@/components/payment-form";
 
 interface CartItem extends MenuItem {
   quantity: number;
@@ -16,51 +17,64 @@ export default function Cart() {
   const { tableId } = useParams();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const [showPayment, setShowPayment] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [items, setItems] = useState<CartItem[]>(() =>
     JSON.parse(localStorage.getItem("cart") || "[]")
   );
 
-  const handlePlaceOrder = () => {
+  const handlePaymentSuccess = async (paymentIntent: any) => {
     setIsPlacingOrder(true);
 
-    // Calculate total
-    const total = items.reduce((sum, item) =>
-      sum + Number(item.price) * item.quantity, 0
-    );
+    try {
+      // Calculate total
+      const total = items.reduce(
+        (sum, item) => sum + Number(item.price) * item.quantity,
+        0
+      );
 
-    // Create mock order
-    const mockOrder = {
-      id: Math.floor(Math.random() * 1000) + 1,
-      tableId: Number(tableId),
-      status: "pending",
-      total,
-      items: items.map((item) => ({
-        id: Math.floor(Math.random() * 1000) + 1,
-        orderId: 0,
-        menuItemId: item.id,
-        quantity: item.quantity,
-        price: Number(item.price),
-      })),
-      createdAt: new Date().toISOString(),
-    };
+      // Create the order with the successful payment
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          tableId: Number(tableId),
+          total: total.toString(),
+          items: items.map((item) => ({
+            menuItemId: item.id,
+            quantity: item.quantity,
+            price: Number(item.price),
+          })),
+          paymentIntentId: paymentIntent.id,
+        }),
+      });
 
-    // Store mock order in localStorage
-    const orders = JSON.parse(localStorage.getItem("orders") || "{}");
-    orders[mockOrder.id] = mockOrder;
-    localStorage.setItem("orders", JSON.stringify(orders));
+      const order = await response.json();
 
-    // Clear cart
-    localStorage.removeItem("cart");
+      if (!response.ok) throw new Error(order.message);
 
-    // Show success message
-    toast({
-      title: "Order Placed!",
-      description: `Your order #${mockOrder.id} has been placed successfully.`,
-    });
+      // Clear cart
+      localStorage.removeItem("cart");
 
-    // Redirect to order status page
-    setLocation(`/order/${mockOrder.id}`);
+      // Show success message
+      toast({
+        title: "Order Placed!",
+        description: `Your order #${order.id} has been placed successfully.`,
+      });
+
+      // Redirect to order status page
+      setLocation(`/order/${order.id}`);
+    } catch (error) {
+      console.error("Error placing order:", error);
+      toast({
+        title: "Error",
+        description: "There was an error placing your order.",
+        variant: "destructive",
+      });
+      setIsPlacingOrder(false);
+    }
   };
 
   const updateQuantity = (index: number, newQuantity: number) => {
@@ -78,8 +92,9 @@ export default function Cart() {
     localStorage.setItem("cart", JSON.stringify(newItems));
   };
 
-  const total = items.reduce((sum, item) =>
-    sum + Number(item.price) * item.quantity, 0
+  const total = items.reduce(
+    (sum, item) => sum + Number(item.price) * item.quantity,
+    0
   );
 
   return (
@@ -157,17 +172,22 @@ export default function Cart() {
                 <span>${total.toFixed(2)}</span>
               </div>
               <Separator className="my-4" />
-              <div className="flex justify-between items-center font-medium">
+              <div className="flex justify-between items-center font-medium mb-4">
                 <span>Total</span>
                 <span>${total.toFixed(2)}</span>
               </div>
-              <Button
-                className="w-full mt-4"
-                onClick={handlePlaceOrder}
-                disabled={isPlacingOrder}
-              >
-                {isPlacingOrder ? "Placing Order..." : "Place Order"}
-              </Button>
+
+              {showPayment ? (
+                <PaymentForm amount={total} onSuccess={handlePaymentSuccess} />
+              ) : (
+                <Button
+                  className="w-full"
+                  onClick={() => setShowPayment(true)}
+                  disabled={isPlacingOrder}
+                >
+                  Proceed to Payment
+                </Button>
+              )}
             </CardContent>
           </Card>
         </div>
