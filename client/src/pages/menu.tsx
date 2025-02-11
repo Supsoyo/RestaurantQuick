@@ -16,14 +16,24 @@ export default function Menu() {
     queryKey: ["/api/menu"],
   });
 
-  const handleAddToCart = (item: MenuItem, quantity: number) => {
+  const handleAddToCart = (item: MenuItem & {
+    quantity: number;
+    customizations?: {
+      excludeIngredients: string[];
+      specialInstructions: string;
+    };
+  }) => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-    cart.push({ ...item, quantity });
+    cart.push(item);
     localStorage.setItem("cart", JSON.stringify(cart));
 
     toast({
       title: "נוסף לסל",
-      description: `${quantity}x ${item.name}`,
+      description: `${item.quantity}x ${item.name}${
+        item.customizations?.excludeIngredients.length
+          ? ` (ללא ${item.customizations.excludeIngredients.join(", ")})`
+          : ""
+      }`,
     });
   };
 
@@ -92,7 +102,7 @@ export default function Menu() {
                     key={item.id}
                     item={item}
                     onAddToCart={(quantity, customizations) =>
-                      handleAddToCart({ ...item, customizations })
+                      handleAddToCart({ ...item, quantity, customizations })
                     }
                   />
                 ))}
