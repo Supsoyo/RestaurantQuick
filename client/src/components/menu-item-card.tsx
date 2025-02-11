@@ -20,7 +20,7 @@ export default function MenuItemCard({ item, onAddToCart }: MenuItemCardProps) {
   const [quantity, setQuantity] = useState(1);
   const [showCustomization, setShowCustomization] = useState(false);
 
-  const handleAddToCart = (customizations?: {
+  const handleAddToCart = (quantity, customizations?: {
     excludeIngredients: string[];
     specialInstructions: string;
   }) => {
