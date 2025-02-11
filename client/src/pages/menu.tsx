@@ -22,14 +22,25 @@ export default function Menu() {
       excludeIngredients: string[];
       specialInstructions: string;
     };
-  }) => {
+  } ,quantity: number) => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    
     cart.push(item);
     localStorage.setItem("cart", JSON.stringify(cart));
+    // localStorage.removeItem("cart");
+
+    
+    // Accessing quantity for each item
+
+      console.log(`Item: ${item.name}, Quantity: ${item.quantity.quantity.toString()}`);
+    const quantityPropertyNames = Object.keys(item.quantity);
+    console.log(quantityPropertyNames); // ["amount"]
+ 
+
 
     toast({
       title: "נוסף לסל",
-      description: `${item.quantity}x ${item.name}${
+      description: `${item.quantity.quantity}x ${item.name}${
         item.customizations?.excludeIngredients.length
           ? ` (ללא ${item.customizations.excludeIngredients.join(", ")})`
           : ""

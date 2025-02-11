@@ -24,12 +24,14 @@ export default function Cart() {
   );
 
   const handlePaymentSuccess = async (paymentIntent: any) => {
+    
     setIsPlacingOrder(true);
 
     try {
+      
       // Calculate total
       const total = items.reduce(
-        (sum, item) => sum + Number(item.price) * item.quantity,
+        (sum, item) => sum + Number(item.price) * item.quantity?.quantity,
         0
       );
 
@@ -44,7 +46,7 @@ export default function Cart() {
           total: total.toString(),
           items: items.map((item) => ({
             menuItemId: item.id,
-            quantity: item.quantity,
+            quantity: item.quantity?.quantity,
             price: Number(item.price),
           })),
           paymentIntentId: paymentIntent.id,
@@ -65,7 +67,7 @@ export default function Cart() {
           id: Math.floor(Math.random() * 1000) + 1,
           orderId: 0,
           menuItemId: item.id,
-          quantity: item.quantity,
+          quantity: item.quantity?.quantity,
           price: Number(item.price),
         })),
         createdAt: new Date().toISOString(),
@@ -102,6 +104,7 @@ export default function Cart() {
   };
 
   const updateQuantity = (index: number, newQuantity: number) => {
+    console.log("newQuantity: ", newQuantity);
     if (newQuantity < 1) {
       const newItems = items.filter((_, i) => i !== index);
       setItems(newItems);
@@ -110,14 +113,14 @@ export default function Cart() {
     }
 
     const newItems = items.map((item, i) =>
-      i === index ? { ...item, quantity: newQuantity } : item
+      i === index ? { ...item, quantity: {quantity: newQuantity} } : item
     );
     setItems(newItems);
     localStorage.setItem("cart", JSON.stringify(newItems));
   };
 
   const total = items.reduce(
-    (sum, item) => sum + Number(item.price) * item.quantity,
+    (sum, item) => sum + Number(item.price) * item.quantity?.quantity,
     0
   );
 
@@ -161,19 +164,19 @@ export default function Cart() {
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => updateQuantity(index, item.quantity - 1)}
+                        onClick={() => updateQuantity(index, item.quantity?.quantity - 1)}
                       >
-                        {item.quantity === 1 ? (
+                        {item.quantity?.quantity === 1 ? (
                           <Trash2 className="h-4 w-4" />
                         ) : (
                           <Minus className="h-4 w-4" />
                         )}
                       </Button>
-                      <span className="w-8 text-center">{item.quantity}</span>
+                      <span className="w-8 text-center">{item.quantity?.quantity}</span>
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => updateQuantity(index, item.quantity + 1)}
+                        onClick={() => updateQuantity(index, item.quantity?.quantity + 1)}
                       >
                         <Plus className="h-4 w-4" />
                       </Button>
@@ -181,7 +184,7 @@ export default function Cart() {
                   </div>
                   <div className="text-right">
                     <p className="font-medium">
-                      ${(Number(item.price) * item.quantity).toFixed(2)}
+                      ${(Number(item.price) * item.quantity?.quantity).toFixed(2)}
                     </p>
                   </div>
                 </div>
