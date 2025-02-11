@@ -16,14 +16,24 @@ export default function Menu() {
     queryKey: ["/api/menu"],
   });
 
-  const handleAddToCart = (item: MenuItem, quantity: number) => {
+  const handleAddToCart = (item: MenuItem & {
+    quantity: number;
+    customizations?: {
+      excludeIngredients: string[];
+      specialInstructions: string;
+    };
+  }) => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-    cart.push({ ...item, quantity });
+    cart.push(item);
     localStorage.setItem("cart", JSON.stringify(cart));
 
     toast({
       title: "נוסף לסל",
-      description: `${quantity}x ${item.name}`,
+      description: `${item.quantity}x ${item.name}${
+        item.customizations?.excludeIngredients.length
+          ? ` (ללא ${item.customizations.excludeIngredients.join(", ")})`
+          : ""
+      }`,
     });
   };
 
@@ -74,12 +84,12 @@ export default function Menu() {
         </div>
       </header>
 
-      <main className="p-4 max-w-4xl mx-auto space-y-8">
+      <main className="p-4 max-w-1xl mx-auto space-y-8">
         {categories.map(category => (
-          <section 
-            key={category} 
+          <section
+            key={category}
             id={`category-${category}`}
-            className="bg-gray-50 rounded-lg p-4 scroll-mt-32"
+            className="bg-gray-50 rounded-lg p-0 scroll-mt-32"
           >
             <h2 className="text-xl font-semibold mb-4 text-center bg-gray-200 py-2 rounded">
               {category}
@@ -91,7 +101,9 @@ export default function Menu() {
                   <MenuItemCard
                     key={item.id}
                     item={item}
-                    onAddToCart={(quantity) => handleAddToCart(item, quantity)}
+                    onAddToCart={(quantity, customizations) =>
+                      handleAddToCart({ ...item, quantity, customizations })
+                    }
                   />
                 ))}
             </div>
