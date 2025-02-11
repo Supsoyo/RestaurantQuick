@@ -143,6 +143,7 @@ export default function Cart() {
         </Card>
       ) : (
         <div className="space-y-4">
+          
           {items.map((item, index) => (
             <Card key={index}>
               <CardContent className="p-4">
@@ -169,7 +170,7 @@ export default function Cart() {
                           <Minus className="h-4 w-4" />
                         )}
                       </Button>
-                      <span className="w-8 text-center">{item.quantity}</span>
+                      <span className="w-8 text-center">{item.quantity.toString()}</span>
                       <Button
                         variant="outline"
                         size="icon"
