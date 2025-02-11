@@ -18,26 +18,23 @@ export default function Menu() {
 
   const handleAddToCart = (item: MenuItem & {
     quantity: number;
-    
+    customizations?: {
+      excludeIngredients: string[];
+      specialInstructions: string;
+    };
   }) => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
     cart.push(item);
     localStorage.setItem("cart", JSON.stringify(cart));
-    // Convert customizations to a string before rendering in toast
-    // const customizationText = item.customizations
-    //   ? `${item.customizations.excludeIngredients.length ? ` (ללא ${item.customizations.excludeIngredients.join(", ")})` : ""} ${
-    //       item.customizations.specialInstructions ? ` (${item.customizations.specialInstructions})` : ""
-    //     }`
-    //   : "";
 
-    // toast({
-    //   title: "נוסף לסל",
-    //   description: `${item.quantity}x ${item.name}${
-    //     item.customizations?.excludeIngredients.length
-    //       ? ` (ללא ${item.customizations.excludeIngredients.join(", ")})`
-    //       : ""
-    //   }`,
-    // });
+    toast({
+      title: "נוסף לסל",
+      description: `${item.quantity}x ${item.name}${
+        item.customizations?.excludeIngredients.length
+          ? ` (ללא ${item.customizations.excludeIngredients.join(", ")})`
+          : ""
+      }`,
+    });
   };
 
   const scrollToCategory = (category: string) => {
@@ -104,8 +101,8 @@ export default function Menu() {
                   <MenuItemCard
                     key={item.id}
                     item={item}
-                    onAddToCart={(quantity) =>
-                      handleAddToCart({ ...item, quantity })
+                    onAddToCart={(quantity, customizations) =>
+                      handleAddToCart({ ...item, quantity, customizations })
                     }
                   />
                 ))}
