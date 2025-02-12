@@ -10,13 +10,7 @@ import CallWaiterButton from "@/components/call-waiter-button";
 import PaymentForm from "@/components/payment-form";
 
 interface CartItem extends MenuItem {
-  quantity: {
-    quantity: number;
-    customizations?: {
-      excludeIngredients: string[];
-      specialInstructions: string;
-    };
-  };
+  quantity: number;
 }
 
 export default function Cart() {
@@ -25,285 +19,213 @@ export default function Cart() {
   const { toast } = useToast();
   const [showPayment, setShowPayment] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
-  const [selectedAmount, setSelectedAmount] = useState(0);
-
-  // Get current customer's name
-  const customerName = localStorage.getItem("customerName") || "לקוח";
-
-  // Get all orders for the table
-  const allOrders = JSON.parse(localStorage.getItem("orders") || "{}");
-  const tableOrders = Object.values(allOrders).filter(
-    (order: any) => order.tableId === Number(tableId)
+  const [items, setItems] = useState<CartItem[]>(() =>
+    JSON.parse(localStorage.getItem("cart") || "[]")
   );
 
-  // Get current cart items
-  const cartItems = JSON.parse(localStorage.getItem("cart") || "[]") as CartItem[];
+  const handlePaymentSuccess = async (paymentIntent: any) => {
+    
+    setIsPlacingOrder(true);
+
+    try {
+      
+      // Calculate total
+      const total = items.reduce(
+        (sum, item) => sum + Number(item.price) * item.quantity?.quantity,
+        0
+      );
+
+      // Create the order with the successful payment
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          tableId: Number(tableId),
+          total: total.toString(),
+          items: items.map((item) => ({
+            menuItemId: item.id,
+            quantity: item.quantity?.quantity,
+            price: Number(item.price),
+          })),
+          paymentIntentId: paymentIntent.id,
+        }),
+      });
+
+      const order = await response.json();
+      
+      order.id = Math.floor(Math.random() * 1000) + 1
+
+      // Create mock order
+      const mockOrder = {
+        id: order.id,
+        tableId: Number(tableId),
+        status: "pending",
+        total,
+        items: items.map((item) => ({
+          id: Math.floor(Math.random() * 1000) + 1,
+          orderId: 0,
+          menuItemId: item.id,
+          quantity: item.quantity?.quantity,
+          price: Number(item.price),
+        })),
+        createdAt: new Date().toISOString(),
+      };
+
+      // Store mock order in localStorage
+      const orders = JSON.parse(localStorage.getItem("orders") || "{}");
+      orders[mockOrder.id] = mockOrder;
+      localStorage.setItem("orders", JSON.stringify(orders));
+
+
+      // if (!response.ok) throw new Error(order.message);
+
+      // Clear cart
+      localStorage.removeItem("cart");
+
+      // Show success message
+      toast({
+        title: "Order Placed!",
+        description: `Your order #${order.id} has been placed successfully.`,
+      });
+
+      // Redirect to order status page
+      setLocation(`/order/${order.id.toString()}`);
+    } catch (error) {
+      console.error("Error placing order:", error);
+      toast({
+        title: "Error",
+        description: "There was an error placing your order.",
+        variant: "destructive",
+      });
+      setIsPlacingOrder(false);
+    }
+  };
 
   const updateQuantity = (index: number, newQuantity: number) => {
+    console.log("newQuantity: ", newQuantity);
     if (newQuantity < 1) {
-      const newItems = cartItems.filter((_, i) => i !== index);
+      const newItems = items.filter((_, i) => i !== index);
       setItems(newItems);
       localStorage.setItem("cart", JSON.stringify(newItems));
       return;
     }
 
-    const newItems = cartItems.map((item, i) =>
-      i === index ? { ...item, quantity: { ...item.quantity, quantity: newQuantity } } : item
+    const newItems = items.map((item, i) =>
+      i === index ? { ...item, quantity: {quantity: newQuantity} } : item
     );
-    localStorage.setItem("cart", JSON.stringify(newItems));
-  };
-
-  const cartTotal = cartItems.reduce(
-    (sum, item) => sum + Number(item.price) * item.quantity.quantity,
-    0
-  );
-
-  const ordersTotal = tableOrders.reduce(
-    (sum: number, order: any) => sum + Number(order.total),
-    0
-  );
-
-  const handlePaymentSuccess = async (paymentIntent: any) => {
-    setIsPlacingOrder(true);
-
-    try {
-      // Create order from current cart
-      if (cartItems.length > 0) {
-        const newOrder = {
-          id: Math.floor(Math.random() * 1000) + 1,
-          tableId: Number(tableId),
-          status: "pending",
-          total: cartTotal,
-          customerName,
-          items: cartItems.map((item) => ({
-            id: Math.floor(Math.random() * 1000) + 1,
-            orderId: 0,
-            menuItemId: item.id,
-            quantity: item.quantity.quantity,
-            price: Number(item.price),
-            customizations: item.quantity.customizations,
-          })),
-          createdAt: new Date().toISOString(),
-        };
-
-        // Add to orders in localStorage
-        allOrders[newOrder.id] = newOrder;
-        localStorage.setItem("orders", JSON.stringify(allOrders));
-
-        // Clear cart
-        localStorage.removeItem("cart");
-      }
-
-      // Show success message
-      toast({
-        title: "התשלום בוצע בהצלחה!",
-        description: `שולם: ₪${selectedAmount.toFixed(2)}`,
-      });
-
-      // Reset state
-      setShowPayment(false);
-      setSelectedAmount(0);
-    } catch (error) {
-      console.error("Error processing payment:", error);
-      toast({
-        title: "שגיאה",
-        description: "אירעה שגיאה בביצוע התשלום.",
-        variant: "destructive",
-      });
-    }
-    setIsPlacingOrder(false);
-  };
-
-  const setItems = (newItems: CartItem[]) => {
     setItems(newItems);
     localStorage.setItem("cart", JSON.stringify(newItems));
   };
 
+  const total = items.reduce(
+    (sum, item) => sum + Number(item.price) * item.quantity?.quantity,
+    0
+  );
+
   return (
-    <div className="min-h-screen p-4" dir="rtl">
+    <div className="min-h-screen p-4">
       <header className="mb-6">
         <Button
           variant="ghost"
           className="mb-4"
           onClick={() => setLocation(`/menu/${tableId}`)}
         >
-          <ArrowLeft className="h-4 w-4 ml-2" />
-          חזרה לתפריט
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Menu
         </Button>
-        <h1 className="text-2xl font-bold">ההזמנות בשולחן</h1>
+        <h1 className="text-2xl font-bold">Your Order</h1>
       </header>
 
-      {/* Current Cart Section */}
-      {cartItems.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">ההזמנה שלי ({customerName})</h2>
-          <div className="space-y-4">
-            {cartItems.map((item, index) => (
-              <Card key={index}>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-4">
-                    <img
-                      src={item.imageUrl}
-                      alt={item.name}
-                      className="w-20 h-20 object-cover rounded"
-                    />
-                    <div className="flex-1">
-                      <h3 className="font-medium">{item.name}</h3>
-                      {item.quantity.customizations?.excludeIngredients.length > 0 && (
-                        <p className="text-xs text-muted-foreground">
-                          ללא: {item.quantity.customizations.excludeIngredients.join(", ")}
-                        </p>
-                      )}
-                      {item.quantity.customizations?.specialInstructions && (
-                        <p className="text-xs text-muted-foreground">
-                          הערה: {item.quantity.customizations.specialInstructions}
-                        </p>
-                      )}
-                      <p className="text-sm text-muted-foreground">
-                        ₪{Number(item.price).toFixed(2)} ליחידה
-                      </p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => updateQuantity(index, item.quantity.quantity - 1)}
-                        >
-                          {item.quantity.quantity === 1 ? (
-                            <Trash2 className="h-4 w-4" />
-                          ) : (
-                            <Minus className="h-4 w-4" />
-                          )}
-                        </Button>
-                        <span className="w-8 text-center">{item.quantity.quantity}</span>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => updateQuantity(index, item.quantity.quantity + 1)}
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-medium">
-                        ₪{(Number(item.price) * item.quantity.quantity).toFixed(2)}
-                      </p>
+      {items.length === 0 ? (
+        <Card>
+          <CardContent className="p-6 text-center text-muted-foreground">
+            Your cart is empty
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {items.map((item, index) => (
+            <Card key={index}>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-4">
+                  <img
+                    src={item.imageUrl}
+                    alt={item.name}
+                    className="w-20 h-20 object-cover rounded"
+                  />
+                  <div className="flex-1">
+                    
+                    <h3 className="font-medium">{item.name}</h3>
+                    <p className="text-xs text-muted-foreground">
+  ללא: {item.quantity.customizations?.excludeIngredients.map((customization) => customization).join(", ")}   
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      הערה: {item.quantity.customizations?.specialInstructions} 
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      ₪{Number(item.price).toFixed(2)} ליחידה
+                    </p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => updateQuantity(index, item.quantity?.quantity - 1)}
+                      >
+                        {item.quantity?.quantity === 1 ? (
+                          <Trash2 className="h-4 w-4" />
+                        ) : (
+                          <Minus className="h-4 w-4" />
+                        )}
+                      </Button>
+                      <span className="w-8 text-center">{item.quantity?.quantity}</span>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => updateQuantity(index, item.quantity?.quantity + 1)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Previous Orders Section */}
-      {tableOrders.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">הזמנות קודמות בשולחן</h2>
-          {tableOrders.map((order: any) => (
-            <Card key={order.id} className="mb-4">
-              <CardContent className="p-4">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-medium">
-                    הזמנה #{order.id} - {order.customerName || "לקוח"}
-                  </h3>
-                  <span className="text-sm text-muted-foreground">
-                    {new Date(order.createdAt).toLocaleTimeString()}
-                  </span>
-                </div>
-                <div className="space-y-4">
-                  {order.items.map((item: any) => (
-                    <div key={item.id} className="flex justify-between items-center">
-                      <div>
-                        <p className="font-medium">
-                          {item.quantity}x {item.name}
-                        </p>
-                        {item.customizations?.excludeIngredients?.length > 0 && (
-                          <p className="text-xs text-muted-foreground">
-                            ללא: {item.customizations.excludeIngredients.join(", ")}
-                          </p>
-                        )}
-                        {item.customizations?.specialInstructions && (
-                          <p className="text-xs text-muted-foreground">
-                            הערה: {item.customizations.specialInstructions}
-                          </p>
-                        )}
-                        <p className="text-sm text-muted-foreground">
-                          ₪{Number(item.price).toFixed(2)} ליחידה
-                        </p>
-                      </div>
-                      <p className="font-medium">
-                        ₪{(Number(item.price) * item.quantity).toFixed(2)}
-                      </p>
-                    </div>
-                  ))}
+                  <div className="text-right">
+                    <p className="font-medium">
+                      ₪{(Number(item.price) * item.quantity?.quantity).toFixed(2)}
+                    </p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           ))}
-        </div>
-      )}
 
-      {/* Payment Section */}
-      {(cartItems.length > 0 || tableOrders.length > 0) && (
-        <Card className="mt-6">
-          <CardContent className="p-4">
-            {cartItems.length > 0 && (
-              <>
-                <div className="flex justify-between items-center mb-2">
-                  <span>סכום ההזמנה הנוכחית</span>
-                  <span>₪{cartTotal.toFixed(2)}</span>
-                </div>
-                <Separator className="my-2" />
-              </>
-            )}
-            <div className="flex justify-between items-center mb-2">
-              <span>סה״כ הזמנות קודמות</span>
-              <span>₪{ordersTotal.toFixed(2)}</span>
-            </div>
-            <Separator className="my-4" />
-            <div className="flex justify-between items-center font-medium mb-4">
-              <span>סה״כ לתשלום</span>
-              <span>₪{(cartTotal + ordersTotal).toFixed(2)}</span>
-            </div>
+          <Card className="mt-6">
+            <CardContent className="p-4">
+              <div className="flex justify-between items-center mb-2">
+                <span>Subtotal</span>
+                <span>₪{total.toFixed(2)}</span>
+              </div>
+              <Separator className="my-4" />
+              <div className="flex justify-between items-center font-medium mb-4">
+                <span>Total</span>
+                <span>₪{total.toFixed(2)}</span>
+              </div>
 
-            {showPayment ? (
-              <PaymentForm 
-                amount={selectedAmount} 
-                onSuccess={handlePaymentSuccess} 
-              />
-            ) : (
-              <div className="space-y-4">
+              {showPayment ? (
+                <PaymentForm amount={total} onSuccess={handlePaymentSuccess} />
+              ) : (
                 <Button
                   className="w-full"
-                  onClick={() => {
-                    setSelectedAmount(cartTotal + ordersTotal);
-                    setShowPayment(true);
-                  }}
+                  onClick={() => setShowPayment(true)}
                   disabled={isPlacingOrder}
                 >
-                  שלם את כל החשבון (₪{(cartTotal + ordersTotal).toFixed(2)})
+                  Proceed to Payment
                 </Button>
-                {cartTotal > 0 && (
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => {
-                      setSelectedAmount(cartTotal);
-                      setShowPayment(true);
-                    }}
-                    disabled={isPlacingOrder}
-                  >
-                    שלם רק את ההזמנה הנוכחית (₪{cartTotal.toFixed(2)})
-                  </Button>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       )}
-
       {tableId && <CallWaiterButton tableId={tableId} />}
     </div>
   );
