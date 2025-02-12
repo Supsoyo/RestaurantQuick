@@ -46,10 +46,10 @@ export default function MenuItemCard({ item, onAddToCart }: MenuItemCardProps) {
           <div className="flex-1">
             <div className="flex justify-between items-start mb-2">
               <div>
-                <h3 className="font-bold text-lg">{item.name}</h3>
+                <h3 className="font-bold">{item.name}</h3>
                 <p className="text-sm text-muted-foreground">{item.description}</p>
               </div>
-              <span className="font-bold text-lg">
+              <span className="font-bold ">
                 ₪{Number(item.price).toFixed(2)}
               </span>
             </div>

@@ -12,6 +12,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface CallWaiterButtonProps {
   tableId: string;
@@ -29,16 +30,41 @@ const SERVICE_OPTIONS = [
 export default function CallWaiterButton({ tableId }: CallWaiterButtonProps) {
   const [calling, setCalling] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<string>("");
+  const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const [customReason, setCustomReason] = useState("");
   const { toast } = useToast();
 
+  // const handleCallWaiter = () => {
+  //   setCalling(true);
+
+  //   const finalReason = selectedOption === "other" 
+  //     ? customReason.trim()
+  //     : SERVICE_OPTIONS.find(option => option.id === selectedOption)?.label || "";
+
+  //   // Store the call in localStorage with a timestamp and reason
+  //   const calls = JSON.parse(localStorage.getItem("waiterCalls") || "{}");
+  //   calls[tableId] = {
+  //     timestamp: new Date().toISOString(),
+  //     reason: finalReason,
+  //   };
+  //   localStorage.setItem("waiterCalls", JSON.stringify(calls));
+  const toggleOption = (optionId: string) => {
+    setSelectedOptions((prev) =>
+      prev.includes(optionId)
+        ? prev.filter((id) => id !== optionId) // Remove if already selected
+        : [...prev, optionId] // Add if not selected
+    );
+  };
   const handleCallWaiter = () => {
     setCalling(true);
 
-    const finalReason = selectedOption === "other" 
-      ? customReason.trim()
-      : SERVICE_OPTIONS.find(option => option.id === selectedOption)?.label || "";
+    const selectedReasons = selectedOptions.map((id) => 
+      id === "other"
+        ? customReason.trim()
+        : SERVICE_OPTIONS.find(option => option.id === id)?.label || ""
+    );
+
+    const finalReason = selectedReasons.join(", ");
 
     // Store the call in localStorage with a timestamp and reason
     const calls = JSON.parse(localStorage.getItem("waiterCalls") || "{}");
@@ -48,6 +74,7 @@ export default function CallWaiterButton({ tableId }: CallWaiterButtonProps) {
     };
     localStorage.setItem("waiterCalls", JSON.stringify(calls));
 
+
     // Show success message
     toast({
       title: "המלצר בדרך",
@@ -56,13 +83,13 @@ export default function CallWaiterButton({ tableId }: CallWaiterButtonProps) {
 
     // Close dialog and reset form
     setShowDialog(false);
-    setSelectedOption("");
+    setSelectedOptions([]);
     setCustomReason("");
 
     // Reset button after 30 seconds
     setTimeout(() => {
       setCalling(false);
-    }, 30000);
+    }, 3000);
   };
 
   return (
@@ -82,24 +109,21 @@ export default function CallWaiterButton({ tableId }: CallWaiterButtonProps) {
           <DialogHeader>
             <DialogTitle>קריאה למלצר</DialogTitle>
           </DialogHeader>
-
           <div className="grid gap-4 py-4">
             <div className="space-y-4">
               <Label>במה נוכל לעזור?</Label>
-              <RadioGroup 
-                value={selectedOption} 
-                onValueChange={setSelectedOption}
-                className="gap-3"
-              >
-                {SERVICE_OPTIONS.map((option) => (
-                  <div key={option.id} className="flex items-center space-x-2 space-x-reverse">
-                    <RadioGroupItem value={option.id} id={option.id} />
-                    <Label htmlFor={option.id}>{option.label}</Label>
-                  </div>
-                ))}
-              </RadioGroup>
+              {SERVICE_OPTIONS.map((option) => (
+                <div key={option.id} className="flex items-center space-x-2 space-x-reverse">
+                  <Checkbox
+                    id={option.id}
+                    checked={selectedOptions.includes(option.id)}
+                    onCheckedChange={() => toggleOption(option.id)}
+                  />
+                  <Label htmlFor={option.id}>{option.label}</Label>
+                </div>
+              ))}
 
-              {selectedOption === "other" && (
+              {selectedOptions.includes("other") && (
                 <div className="space-y-2">
                   <Label>פרט את בקשתך:</Label>
                   <Textarea
@@ -124,7 +148,7 @@ export default function CallWaiterButton({ tableId }: CallWaiterButtonProps) {
             <Button 
               type="button" 
               onClick={handleCallWaiter}
-              disabled={!selectedOption || (selectedOption === "other" && !customReason.trim())}
+              disabled={selectedOptions.length === 0 || (selectedOptions.includes("other") && !customReason.trim())}
             >
               קרא למלצר
             </Button>

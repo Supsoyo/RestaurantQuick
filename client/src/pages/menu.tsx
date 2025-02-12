@@ -22,20 +22,20 @@ export default function Menu() {
       excludeIngredients: string[];
       specialInstructions: string;
     };
-  } ,quantity: number) => {
+  }, quantity: number) => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-    
+
     cart.push(item);
     localStorage.setItem("cart", JSON.stringify(cart));
     // localStorage.removeItem("cart");
 
-    
+
     // Accessing quantity for each item
 
-      console.log(`Item: ${item.name}, Quantity: ${item.quantity.quantity.toString()}`);
+    console.log(`Item: ${item.name}, Quantity: ${item.quantity.quantity.toString()}`);
     const quantityPropertyNames = Object.keys(item.quantity);
     console.log(quantityPropertyNames); // ["amount"]
- 
+
 
 
     toast({
@@ -72,11 +72,18 @@ export default function Menu() {
       <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b">
         <div className="flex justify-between items-center max-w-4xl mx-auto p-4">
           <h1 className="text-2xl font-bold">מה בא לנו היום?</h1>
-          <Link href={`/cart/${tableId}`}>
-            <Button variant="outline" size="icon">
-              <ShoppingCart className="h-5 w-5" />
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link href={`/table/${tableId}`}>
+              <Button variant="outline">
+                סיכום שולחן
+              </Button>
+            </Link>
+            <Link href={`/cart/${tableId}`}>
+              <Button variant="outline" size="icon">
+                <ShoppingCart className="h-5 w-5" />
+              </Button>
+            </Link>
+          </div>
         </div>
 
         <div className="overflow-x-auto scrollbar-hide border-t bg-card">
