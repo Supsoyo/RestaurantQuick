@@ -23,85 +23,63 @@ export default function Cart() {
     JSON.parse(localStorage.getItem("cart") || "[]")
   );
 
-  const handlePaymentSuccess = async (paymentIntent: any) => {
-    
-    setIsPlacingOrder(true);
+const handlePaymentSuccess = async (paymentIntent: any) => {
+  setIsPlacingOrder(true);
 
-    try {
-      
-      // Calculate total
-      const total = items.reduce(
-        (sum, item) => sum + Number(item.price) * item.quantity?.quantity,
-        0
-      );
+  try {
+    // Calculate total
+    const total = items.reduce(
+      (sum, item) => sum + Number(item.price) * item.quantity?.quantity,
+      0
+    );
 
-      // Create the order with the successful payment
-      const response = await fetch("/api/orders", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          tableId: Number(tableId),
-          total: total.toString(),
-          items: items.map((item) => ({
-            menuItemId: item.id,
-            quantity: item.quantity?.quantity,
-            price: Number(item.price),
-          })),
-          paymentIntentId: paymentIntent.id,
-        }),
-      });
+    // Get customer name from localStorage
+    const customerName = localStorage.getItem("customerName") || "אורח";
 
-      const order = await response.json();
-      
-      order.id = Math.floor(Math.random() * 1000) + 1
+    // Create mock order with customer information
+    const mockOrder = {
+      id: Math.floor(Math.random() * 1000) + 1,
+      tableId: Number(tableId),
+      customerName,
+      status: "pending",
+      total,
+      items: items.map((item) => ({
+        id: Math.floor(Math.random() * 1000) + 1,
+        orderId: 0,
+        menuItemId: item.id,
+        quantity: item.quantity?.quantity,
+        price: Number(item.price),
+        customizations: item.quantity.customizations,
+      })),
+      createdAt: new Date().toISOString(),
+    };
 
-      // Create mock order
-      const mockOrder = {
-        id: order.id,
-        tableId: Number(tableId),
-        status: "pending",
-        total,
-        items: items.map((item) => ({
-          id: Math.floor(Math.random() * 1000) + 1,
-          orderId: 0,
-          menuItemId: item.id,
-          quantity: item.quantity?.quantity,
-          price: Number(item.price),
-        })),
-        createdAt: new Date().toISOString(),
-      };
+    // Store mock order in localStorage
+    const orders = JSON.parse(localStorage.getItem("orders") || "{}");
+    orders[mockOrder.id] = mockOrder;
+    localStorage.setItem("orders", JSON.stringify(orders));
 
-      // Store mock order in localStorage
-      const orders = JSON.parse(localStorage.getItem("orders") || "{}");
-      orders[mockOrder.id] = mockOrder;
-      localStorage.setItem("orders", JSON.stringify(orders));
+    // Clear cart
+    localStorage.removeItem("cart");
 
+    // Show success message
+    toast({
+      title: "ההזמנה בוצעה!",
+      description: `הזמנה מספר #${mockOrder.id} בוצעה בהצלחה.`,
+    });
 
-      // if (!response.ok) throw new Error(order.message);
-
-      // Clear cart
-      localStorage.removeItem("cart");
-
-      // Show success message
-      toast({
-        title: "Order Placed!",
-        description: `Your order #${order.id} has been placed successfully.`,
-      });
-
-      // Redirect to order status page
-      setLocation(`/order/${order.id.toString()}`);
-    } catch (error) {
-      console.error("Error placing order:", error);
-      toast({
-        title: "Error",
-        description: "There was an error placing your order.",
-        variant: "destructive",
-      });
-      setIsPlacingOrder(false);
-    }
-  };
+    // Redirect to order status page
+    setLocation(`/order/${mockOrder.id}`);
+  } catch (error) {
+    console.error("Error placing order:", error);
+    toast({
+      title: "שגיאה",
+      description: "אירעה שגיאה בביצוע ההזמנה.",
+      variant: "destructive",
+    });
+    setIsPlacingOrder(false);
+  }
+};
 
   const updateQuantity = (index: number, newQuantity: number) => {
     console.log("newQuantity: ", newQuantity);
@@ -156,10 +134,9 @@ export default function Cart() {
                     className="w-20 h-20 object-cover rounded"
                   />
                   <div className="flex-1">
-                    
                     <h3 className="font-medium">{item.name}</h3>
                     <p className="text-xs text-muted-foreground">
-  ללא: {item.quantity.customizations?.excludeIngredients.map((customization) => customization).join(", ")}   
+                      ללא: {item.quantity.customizations?.excludeIngredients.map((customization) => customization).join(", ")}   
                     </p>
                     <p className="text-xs text-muted-foreground">
                       הערה: {item.quantity.customizations?.specialInstructions} 
