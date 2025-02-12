@@ -156,16 +156,9 @@ export default function Cart() {
                     className="w-20 h-20 object-cover rounded"
                   />
                   <div className="flex-1">
-                    
                     <h3 className="font-medium">{item.name}</h3>
-                    <p className="text-xs text-muted-foreground">
-  ללא: {item.quantity.customizations?.excludeIngredients.map((customization) => customization).join(", ")}   
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      הערה: {item.quantity.customizations?.specialInstructions} 
-                    </p>
                     <p className="text-sm text-muted-foreground">
-                      ₪{Number(item.price).toFixed(2)} ליחידה
+                      ${Number(item.price).toFixed(2)} each
                     </p>
                     <div className="flex items-center gap-2 mt-2">
                       <Button
@@ -191,7 +184,7 @@ export default function Cart() {
                   </div>
                   <div className="text-right">
                     <p className="font-medium">
-                      ₪{(Number(item.price) * item.quantity?.quantity).toFixed(2)}
+                      ${(Number(item.price) * item.quantity?.quantity).toFixed(2)}
                     </p>
                   </div>
                 </div>
@@ -203,12 +196,12 @@ export default function Cart() {
             <CardContent className="p-4">
               <div className="flex justify-between items-center mb-2">
                 <span>Subtotal</span>
-                <span>₪{total.toFixed(2)}</span>
+                <span>${total.toFixed(2)}</span>
               </div>
               <Separator className="my-4" />
               <div className="flex justify-between items-center font-medium mb-4">
                 <span>Total</span>
-                <span>₪{total.toFixed(2)}</span>
+                <span>${total.toFixed(2)}</span>
               </div>
 
               {showPayment ? (
