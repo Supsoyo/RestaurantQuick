@@ -11,25 +11,40 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface CallWaiterButtonProps {
   tableId: string;
 }
 
+const SERVICE_OPTIONS = [
+  { id: "napkins", label: "בקשת מפיות נוספות" },
+  { id: "utensils", label: "בקשת סכו\"ם נוסף" },
+  { id: "cleaning", label: "ניקוי השולחן" },
+  { id: "bill", label: "בקשת חשבון" },
+  { id: "order", label: "הזמנה נוספת" },
+  { id: "other", label: "בקשה אחרת" },
+];
+
 export default function CallWaiterButton({ tableId }: CallWaiterButtonProps) {
   const [calling, setCalling] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
-  const [reason, setReason] = useState("");
+  const [selectedOption, setSelectedOption] = useState<string>("");
+  const [customReason, setCustomReason] = useState("");
   const { toast } = useToast();
 
   const handleCallWaiter = () => {
     setCalling(true);
 
+    const finalReason = selectedOption === "other" 
+      ? customReason.trim()
+      : SERVICE_OPTIONS.find(option => option.id === selectedOption)?.label || "";
+
     // Store the call in localStorage with a timestamp and reason
     const calls = JSON.parse(localStorage.getItem("waiterCalls") || "{}");
     calls[tableId] = {
       timestamp: new Date().toISOString(),
-      reason: reason.trim(),
+      reason: finalReason,
     };
     localStorage.setItem("waiterCalls", JSON.stringify(calls));
 
@@ -41,7 +56,8 @@ export default function CallWaiterButton({ tableId }: CallWaiterButtonProps) {
 
     // Close dialog and reset form
     setShowDialog(false);
-    setReason("");
+    setSelectedOption("");
+    setCustomReason("");
 
     // Reset button after 30 seconds
     setTimeout(() => {
@@ -68,14 +84,32 @@ export default function CallWaiterButton({ tableId }: CallWaiterButtonProps) {
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
-            <div className="space-y-2">
+            <div className="space-y-4">
               <Label>במה נוכל לעזור?</Label>
-              <Textarea
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                placeholder="לדוגמה: צריך תוספת סכו״ם, רוצה להזמין קינוח..."
-                className="resize-none"
-              />
+              <RadioGroup 
+                value={selectedOption} 
+                onValueChange={setSelectedOption}
+                className="gap-3"
+              >
+                {SERVICE_OPTIONS.map((option) => (
+                  <div key={option.id} className="flex items-center space-x-2 space-x-reverse">
+                    <RadioGroupItem value={option.id} id={option.id} />
+                    <Label htmlFor={option.id}>{option.label}</Label>
+                  </div>
+                ))}
+              </RadioGroup>
+
+              {selectedOption === "other" && (
+                <div className="space-y-2">
+                  <Label>פרט את בקשתך:</Label>
+                  <Textarea
+                    value={customReason}
+                    onChange={(e) => setCustomReason(e.target.value)}
+                    placeholder="הסבר במה המלצר יכול לעזור..."
+                    className="resize-none"
+                  />
+                </div>
+              )}
             </div>
           </div>
 
@@ -90,7 +124,7 @@ export default function CallWaiterButton({ tableId }: CallWaiterButtonProps) {
             <Button 
               type="button" 
               onClick={handleCallWaiter}
-              disabled={!reason.trim()}
+              disabled={!selectedOption || (selectedOption === "other" && !customReason.trim())}
             >
               קרא למלצר
             </Button>
