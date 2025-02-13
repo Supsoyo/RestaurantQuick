@@ -14,6 +14,13 @@ import { Input } from "@/components/ui/input";
 
 interface CartItem extends MenuItem {
   quantity: number;
+  customizations?: {
+    excludeIngredients: string[];
+    specialInstructions: string;
+    selectedToppings: Array<{ name: string, price: string }>;
+    selectedSide?: { name: string, price: string };
+    selectedDrink?: { name: string, price: string };
+  };
 }
 
 const TIP_OPTIONS = [
@@ -32,69 +39,72 @@ export default function Cart() {
   const { toast } = useToast();
   const [showPayment, setShowPayment] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
-  const [tipPercentage, setTipPercentage] = useState("10"); // Default 10% tip
+  const [tipPercentage, setTipPercentage] = useState("10");
   const [customTipAmount, setCustomTipAmount] = useState("");
   const [items, setItems] = useState<CartItem[]>(() =>
     JSON.parse(localStorage.getItem("cart") || "[]")
   );
 
+  const calculateItemTotal = (item: CartItem) => {
+    let total = Number(item.price);
+
+    if (item.customizations) {
+      // Add toppings costs
+      total += item.customizations.selectedToppings.reduce(
+        (sum, topping) => sum + Number(topping.price),
+        0
+      );
+
+      // Add side dish cost if selected
+      if (item.customizations.selectedSide) {
+        total += Number(item.customizations.selectedSide.price);
+      }
+
+      // Add drink cost if selected
+      if (item.customizations.selectedDrink) {
+        total += Number(item.customizations.selectedDrink.price);
+      }
+    }
+
+    return total * item.quantity;
+  };
+
   const handlePaymentSuccess = async (paymentIntent: any) => {
     setIsPlacingOrder(true);
 
     try {
-      // Calculate total with tip
       const subtotal = items.reduce(
-        (sum, item) => sum + Number(item.price) * item.quantity?.quantity,
+        (sum, item) => sum + calculateItemTotal(item),
         0
       );
+
       const tipAmount = tipPercentage === "custom"
         ? Number(customTipAmount) || 0
         : (subtotal * Number(tipPercentage)) / 100;
       const total = subtotal + tipAmount;
 
-      // Create the order with the successful payment
-      const response = await fetch("/api/orders", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          tableId: Number(tableId),
-          total: total.toString(),
-          items: items.map((item) => ({
-            menuItemId: item.id,
-            quantity: item.quantity?.quantity,
-            price: Number(item.price),
-          })),
-          tipAmount: tipAmount.toString(),
-          paymentIntentId: paymentIntent.id,
-        }),
-      });
-
-      const order = await response.json();
-
-      order.id = Math.floor(Math.random() * 1000) + 1;
-
       // Create mock order
+      const orderId = Math.floor(Math.random() * 1000) + 1;
       const mockOrder = {
-        id: order.id,
+        id: orderId,
         tableId: Number(tableId),
         status: "pending",
         total,
         tipAmount,
         items: items.map((item) => ({
           id: Math.floor(Math.random() * 1000) + 1,
-          orderId: 0,
+          orderId,
           menuItemId: item.id,
-          quantity: item.quantity?.quantity,
-          price: Number(item.price),
+          quantity: item.quantity,
+          price: calculateItemTotal(item) / item.quantity,
+          customizations: item.customizations,
         })),
         createdAt: new Date().toISOString(),
       };
 
       // Store mock order in localStorage
       const orders = JSON.parse(localStorage.getItem("orders") || "{}");
-      orders[mockOrder.id] = mockOrder;
+      orders[orderId] = mockOrder;
       localStorage.setItem("orders", JSON.stringify(orders));
 
       // Clear cart
@@ -103,8 +113,8 @@ export default function Cart() {
       // Show success message
       toast({
         title: "ההזמנה בוצעה!",
-        description: `הזמנה מספר ${order.id} התקבלה בהצלחה.`,
-        onClick: () => setLocation(`/order/${order.id}`), // Clicking toast navigates to order status
+        description: `הזמנה מספר ${orderId} התקבלה בהצלחה.`,
+        onClick: () => setLocation(`/order/${orderId}`),
       });
 
       // Redirect to menu
@@ -129,14 +139,14 @@ export default function Cart() {
     }
 
     const newItems = items.map((item, i) =>
-      i === index ? { ...item, quantity: { quantity: newQuantity } } : item
+      i === index ? { ...item, quantity: newQuantity } : item
     );
     setItems(newItems);
     localStorage.setItem("cart", JSON.stringify(newItems));
   };
 
   const subtotal = items.reduce(
-    (sum, item) => sum + Number(item.price) * item.quantity?.quantity,
+    (sum, item) => sum + calculateItemTotal(item),
     0
   );
 
@@ -180,25 +190,44 @@ export default function Cart() {
                   <div className="flex-1">
                     <h3 className="font-medium">{item.name}</h3>
                     <p className="text-sm text-muted-foreground">
-                      ₪{Number(item.price).toFixed(2)} ליחידה
+                      ₪{calculateItemTotal(item) / item.quantity} ליחידה
                     </p>
+                    {item.customizations && (
+                      <div className="text-sm text-muted-foreground mt-1">
+                        {item.customizations.selectedToppings.length > 0 && (
+                          <p>תוספות: {item.customizations.selectedToppings.map(t => t.name).join(", ")}</p>
+                        )}
+                        {item.customizations.selectedSide && (
+                          <p>תוספת בצד: {item.customizations.selectedSide.name}</p>
+                        )}
+                        {item.customizations.selectedDrink && (
+                          <p>שתייה: {item.customizations.selectedDrink.name}</p>
+                        )}
+                        {item.customizations.excludeIngredients.length > 0 && (
+                          <p>ללא: {item.customizations.excludeIngredients.join(", ")}</p>
+                        )}
+                        {item.customizations.specialInstructions && (
+                          <p>הערות: {item.customizations.specialInstructions}</p>
+                        )}
+                      </div>
+                    )}
                     <div className="flex items-center gap-2 mt-2">
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => updateQuantity(index, item.quantity?.quantity - 1)}
+                        onClick={() => updateQuantity(index, item.quantity - 1)}
                       >
-                        {item.quantity?.quantity === 1 ? (
+                        {item.quantity === 1 ? (
                           <Trash2 className="h-4 w-4" />
                         ) : (
                           <Minus className="h-4 w-4" />
                         )}
                       </Button>
-                      <span className="w-8 text-center">{item.quantity?.quantity}</span>
+                      <span className="w-8 text-center">{item.quantity}</span>
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => updateQuantity(index, item.quantity?.quantity + 1)}
+                        onClick={() => updateQuantity(index, item.quantity + 1)}
                       >
                         <Plus className="h-4 w-4" />
                       </Button>
@@ -206,7 +235,7 @@ export default function Cart() {
                   </div>
                   <div className="text-right">
                     <p className="font-medium">
-                      ₪{(Number(item.price) * item.quantity?.quantity).toFixed(2)}
+                      ₪{calculateItemTotal(item).toFixed(2)}
                     </p>
                   </div>
                 </div>
