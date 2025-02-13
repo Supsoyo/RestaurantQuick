@@ -108,8 +108,8 @@ export default function OrderStatus() {
 
           <div className="grid grid-cols-4 gap-2 text-center text-sm">
             {Object.entries(STATUS_STEPS).map(([key, value]) => (
-              <div 
-                key={key} 
+              <div
+                key={key}
                 className={`${order.status === key ? 'text-primary font-medium' : 'text-muted-foreground'}`}
               >
                 <value.icon className="h-4 w-4 mx-auto mb-1" />
@@ -138,9 +138,21 @@ export default function OrderStatus() {
               </div>
             ))}
             <Separator />
-            <div className="flex justify-between items-center font-medium">
-              <span>Total</span>
-              <span>${Number(order.total).toFixed(2)}</span>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span>Subtotal</span>
+                <span>${(Number(order.total) - Number(order.tipAmount || 0)).toFixed(2)}</span>
+              </div>
+              {order.tipAmount && Number(order.tipAmount) > 0 && (
+                <div className="flex justify-between items-center">
+                  <span>Tip</span>
+                  <span>${Number(order.tipAmount).toFixed(2)}</span>
+                </div>
+              )}
+              <div className="flex justify-between items-center font-medium">
+                <span>Total</span>
+                <span>${Number(order.total).toFixed(2)}</span>
+              </div>
             </div>
           </div>
         </CardContent>

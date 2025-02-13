@@ -39,12 +39,17 @@ export default function MenuItemCard({ item, onAddToCart }: MenuItemCardProps) {
           src={item.imageUrl}
           alt={item.name}
           className="object-cover w-full h-full"
+          onClick={() => setShowCustomization(true)}
         />
       </div>
-      <Card className="flex-1 overflow-visible hover:shadow-lg transition-shadow w-24 max-w-md mx-auto rounded-none h-full">
-        <div className="flex items-center gap-0 p-2">
-          <div className="flex-1">
-            <div className="flex justify-between items-start mb-2">
+      <Card className="flex-1 overflow-visible hover:shadow-lg transition-shadow w-24 max-w-md mx-auto rounded-none h-full"
+        >
+        <div className="flex items-center gap-0 p-2"
+          >
+          <div className="flex-1"
+            >
+            <div className="flex justify-between items-start mb-2"
+              onClick={() => setShowCustomization(true)}>
               <div>
                 <h3 className="font-bold text-lg">{item.name}</h3>
                 <p className="text-sm text-muted-foreground">{item.description}</p>

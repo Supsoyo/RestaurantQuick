@@ -41,10 +41,13 @@ export default function Menu() {
     toast({
       title: "נוסף לסל",
       description: `${item.quantity.quantity}x ${item.name}${
-        item.customizations?.excludeIngredients.length
-          ? ` (ללא ${item.customizations.excludeIngredients.join(", ")})`
+        item.quantity.customizations?.excludeIngredients.length
+          ? ` (ללא ${item.quantity.customizations.excludeIngredients.join(", ")})`
           : ""
+        
       }`,
+       onClick: () => location.href = `/cart/${tableId}`, // Redirects on click
+      
     });
   };
 
@@ -72,6 +75,7 @@ export default function Menu() {
       <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b">
         <div className="flex justify-between items-center max-w-4xl mx-auto p-4">
           <h1 className="text-2xl font-bold">מה בא לנו היום?</h1>
+
           <Link href={`/cart/${tableId}`}>
             <Button variant="outline" size="icon">
               <ShoppingCart className="h-5 w-5" />
