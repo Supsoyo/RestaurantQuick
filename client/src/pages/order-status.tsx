@@ -8,24 +8,17 @@ import { type Order, type OrderItem } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 
 interface OrderWithItems extends Order {
-  items: (OrderItem & {
-    customizations?: {
-      excludeIngredients: string[];
-      specialInstructions: string;
-      selectedToppings: Array<{ name: string; price: string }>;
-      selectedSide?: { name: string; price: string };
-      selectedDrink?: { name: string; price: string };
-    };
-  })[];
+  items: OrderItem[];
 }
 
 const STATUS_STEPS = {
-  pending: { progress: 25, icon: Clock, label: "ההזמנה התקבלה", description: "ההזמנה שלך התקבלה ונמצאת בבדיקה" },
-  preparing: { progress: 50, icon: ChefHat, label: "בהכנה", description: "השפים שלנו מכינים את ההזמנה שלך" },
-  ready: { progress: 75, icon: TruckIcon, label: "מוכן להגשה", description: "ההזמנה שלך מוכנה להגשה" },
-  completed: { progress: 100, icon: CheckCircle2, label: "הושלם", description: "בתיאבון!" },
+  pending: { progress: 25, icon: Clock, label: "Order Received", description: "Your order has been received and is being reviewed" },
+  preparing: { progress: 50, icon: ChefHat, label: "Preparing", description: "Our chefs are preparing your delicious meal" },
+  ready: { progress: 75, icon: TruckIcon, label: "Ready for Pickup", description: "Your order is ready to be served" },
+  completed: { progress: 100, icon: CheckCircle2, label: "Completed", description: "Enjoy your meal!" },
 };
 
+// Mock status progression for development
 const STATUS_SEQUENCE = ["pending", "preparing", "ready", "completed"] as const;
 
 export default function OrderStatus() {
@@ -86,7 +79,7 @@ export default function OrderStatus() {
       <div className="p-4">
         <Card>
           <CardContent className="p-6 text-center text-muted-foreground">
-            ההזמנה לא נמצאה
+            Order not found
           </CardContent>
         </Card>
       </div>
@@ -143,51 +136,33 @@ export default function OrderStatus() {
           <h2 className="font-medium mb-4">סיכום הזמנה</h2>
           <div className="space-y-4">
             {order.items.map((item) => (
-              <div key={item.id} className="space-y-2">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="font-medium">{item.quantity}x {item.name}</p>
-                    {item.customizations && (
-                      <div className="text-sm text-muted-foreground">
-                        {item.customizations.selectedToppings.length > 0 && (
-                          <p>תוספות: {item.customizations.selectedToppings.map(t => t.name).join(", ")}</p>
-                        )}
-                        {item.customizations.selectedSide && (
-                          <p>תוספת בצד: {item.customizations.selectedSide.name}</p>
-                        )}
-                        {item.customizations.selectedDrink && (
-                          <p>שתייה: {item.customizations.selectedDrink.name}</p>
-                        )}
-                        {item.customizations.excludeIngredients.length > 0 && (
-                          <p>ללא: {item.customizations.excludeIngredients.join(", ")}</p>
-                        )}
-                        {item.customizations.specialInstructions && (
-                          <p>הערות: {item.customizations.specialInstructions}</p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  <p className="font-medium">
-                    ₪{(Number(item.price) * item.quantity).toFixed(2)}
+              <div key={item.id} className="flex justify-between items-center">
+                <div>
+                  <p className="font-medium">{item.quantity}x Menu Item</p>
+                  <p className="text-sm text-muted-foreground">
+                    ${Number(item.price).toFixed(2)} each
                   </p>
                 </div>
+                <p className="font-medium">
+                  ${(Number(item.price) * item.quantity).toFixed(2)}
+                </p>
               </div>
             ))}
             <Separator />
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <span>סכום ביניים</span>
-                <span>₪{(Number(order.total) - Number(order.tipAmount || 0)).toFixed(2)}</span>
+                <span>${(Number(order.total) - Number(order.tipAmount || 0)).toFixed(2)}</span>
               </div>
               {order.tipAmount && Number(order.tipAmount) > 0 && (
                 <div className="flex justify-between items-center">
                   <span>טיפ</span>
-                  <span>₪{Number(order.tipAmount).toFixed(2)}</span>
+                  <span>${Number(order.tipAmount).toFixed(2)}</span>
                 </div>
               )}
               <div className="flex justify-between items-center font-medium">
                 <span>סה״כ</span>
-                <span>₪{Number(order.total).toFixed(2)}</span>
+                <span>${Number(order.total).toFixed(2)}</span>
               </div>
             </div>
           </div>

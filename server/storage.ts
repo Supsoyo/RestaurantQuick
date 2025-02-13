@@ -4,10 +4,10 @@ export interface IStorage {
   // Menu Items
   getMenuItems(): Promise<MenuItem[]>;
   getMenuItem(id: number): Promise<MenuItem | undefined>;
-
+  
   // Tables
   getTable(id: number): Promise<Table | undefined>;
-
+  
   // Orders
   createOrder(order: InsertOrder): Promise<Order>;
   getOrder(id: number): Promise<Order | undefined>;
@@ -41,24 +41,13 @@ export class MemStorage implements IStorage {
         price: "59.00",
         category: "המיוחדות שלנו",
         imageUrl: "https://images.unsplash.com/photo-1470337458703-46ad1756a187",
-        customizationOptions: {
-          toppings: [
-            { name: "גבינה צהובה", price: "5.00" },
-            { name: "בצל מטוגן", price: "3.00" },
-            { name: "פטריות", price: "4.00" },
-            { name: "ביצת עין", price: "6.00" }
-          ],
-          sides: [
-            { name: "צ'יפס", price: "15.00" },
-            { name: "טבעות בצל", price: "18.00" },
-            { name: "סלט ירוק", price: "12.00" }
-          ],
-          drinks: [
-            { name: "קולה", price: "12.00" },
-            { name: "ספרייט", price: "12.00" },
-            { name: "מים מינרלים", price: "8.00" }
-          ]
-        }
+      },
+      {
+        name: "המבורגר קלאסי",
+        description: "נתחי בקר טרי, חסה, עגבניה ורוטב הבית",
+        price: "59.00",
+        category: "ראשונות",
+        imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd",
       },
       {
         name: "סלט ירקות",
@@ -66,39 +55,21 @@ export class MemStorage implements IStorage {
         price: "45.00",
         category: "ראשונות",
         imageUrl: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd",
-        customizationOptions: {
-          toppings: [
-            { name: "טונה", price: "8.00" },
-            { name: "ביצה קשה", price: "4.00" },
-            { name: "זיתים", price: "3.00" }
-          ]
-        }
       },
       {
-        name: "המבורגר קלאסי",
-        description: "נתחי בקר טרי, חסה, עגבניה ורוטב הבית",
-        price: "59.00",
-        category: "המיוחדות שלנו",
-        imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd",
-        customizationOptions: {
-          toppings: [
-            { name: "גבינה צהובה", price: "5.00" },
-            { name: "בצל מטוגן", price: "3.00" },
-            { name: "פטריות", price: "4.00" },
-            { name: "ביצת עין", price: "6.00" }
-          ],
-          sides: [
-            { name: "צ'יפס", price: "15.00" },
-            { name: "טבעות בצל", price: "18.00" },
-            { name: "סלט ירוק", price: "12.00" }
-          ],
-          drinks: [
-            { name: "קולה", price: "12.00" },
-            { name: "ספרייט", price: "12.00" },
-            { name: "מים מינרלים", price: "8.00" }
-          ]
-        }
-      }
+        name: "פסטה ברוטב עגבניות",
+        description: "פסטה טרייה ברוטב עגבניות ביתי",
+        price: "52.00",
+        category: "עיקריות",
+        imageUrl: "https://images.unsplash.com/photo-1473093295043-cdd812d0e601",
+      },
+      {
+        name: "טירמיסו",
+        description: "קינוח איטלקי קלאסי",
+        price: "32.00",
+        category: "קינוחים",
+        imageUrl: "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9",
+      },
     ];
 
     sampleMenuItems.forEach((item) => {
@@ -134,9 +105,9 @@ export class MemStorage implements IStorage {
       total: insertOrder.total,
       createdAt: new Date(),
     };
-
+    
     this.orders.set(id, order);
-
+    
     const orderItems: OrderItem[] = insertOrder.items.map((item) => ({
       id: this.currentIds.orderItem++,
       orderId: id,
@@ -144,7 +115,7 @@ export class MemStorage implements IStorage {
       quantity: item.quantity,
       price: item.price,
     }));
-
+    
     this.orderItems.set(id, orderItems);
     return order;
   }
@@ -160,7 +131,7 @@ export class MemStorage implements IStorage {
   async updateOrderStatus(id: number, status: Order["status"]): Promise<Order> {
     const order = this.orders.get(id);
     if (!order) throw new Error("Order not found");
-
+    
     const updatedOrder = { ...order, status };
     this.orders.set(id, updatedOrder);
     return updatedOrder;

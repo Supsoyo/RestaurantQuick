@@ -50,7 +50,7 @@ export default function MenuItemCard({ item, onAddToCart }: MenuItemCardProps) {
             >
             <div className="flex justify-between items-start mb-2"
               onClick={() => setShowCustomization(true)}>
-              <div className="max-w-[70%]">
+              <div>
                 <h3 className="font-bold text-lg">{item.name}</h3>
                 <p className="text-sm text-muted-foreground">{item.description}</p>
               </div>
