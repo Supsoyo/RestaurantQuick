@@ -10,6 +10,7 @@ import CallWaiterButton from "@/components/call-waiter-button";
 import PaymentForm from "@/components/payment-form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 interface CartItem extends MenuItem {
   quantity: number;
@@ -22,6 +23,7 @@ const TIP_OPTIONS = [
   { value: "15", label: "15%" },
   { value: "18", label: "18%" },
   { value: "20", label: "20%" },
+  { value: "custom", label: "סכום אחר" },
 ];
 
 export default function Cart() {
@@ -31,6 +33,7 @@ export default function Cart() {
   const [showPayment, setShowPayment] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [tipPercentage, setTipPercentage] = useState("10"); // Default 10% tip
+  const [customTipAmount, setCustomTipAmount] = useState("");
   const [items, setItems] = useState<CartItem[]>(() =>
     JSON.parse(localStorage.getItem("cart") || "[]")
   );
@@ -44,7 +47,9 @@ export default function Cart() {
         (sum, item) => sum + Number(item.price) * item.quantity?.quantity,
         0
       );
-      const tipAmount = (subtotal * Number(tipPercentage)) / 100;
+      const tipAmount = tipPercentage === "custom"
+        ? Number(customTipAmount) || 0
+        : (subtotal * Number(tipPercentage)) / 100;
       const total = subtotal + tipAmount;
 
       // Create the order with the successful payment
@@ -133,7 +138,11 @@ export default function Cart() {
     (sum, item) => sum + Number(item.price) * item.quantity?.quantity,
     0
   );
-  const tipAmount = (subtotal * Number(tipPercentage)) / 100;
+
+  const tipAmount = tipPercentage === "custom"
+    ? Number(customTipAmount) || 0
+    : (subtotal * Number(tipPercentage)) / 100;
+
   const total = subtotal + tipAmount;
 
   return (
@@ -235,11 +244,31 @@ export default function Cart() {
                       </div>
                     ))}
                   </RadioGroup>
+
+                  {tipPercentage === "custom" && (
+                    <div className="mt-2">
+                      <Label>הכנס סכום טיפ:</Label>
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">₪</span>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={customTipAmount}
+                          onChange={(e) => setCustomTipAmount(e.target.value)}
+                          placeholder="0"
+                          className="w-24"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                {Number(tipPercentage) > 0 && (
+                {(Number(tipPercentage) > 0 || tipPercentage === "custom") && (
                   <div className="flex justify-between items-center">
-                    <span>טיפ ({tipPercentage}%)</span>
+                    <span>
+                      {tipPercentage === "custom" ? "טיפ" : `טיפ (${tipPercentage}%)`}
+                    </span>
                     <span>₪{tipAmount.toFixed(2)}</span>
                   </div>
                 )}
