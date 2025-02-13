@@ -7,6 +7,7 @@ import Home from "@/pages/home";
 import Menu from "@/pages/menu";
 import Cart from "@/pages/cart";
 import OrderStatus from "@/pages/order-status";
+import TableOrders from "@/pages/table-orders";
 
 function Router() {
   return (
@@ -15,6 +16,7 @@ function Router() {
       <Route path="/menu/:tableId" component={Menu} />
       <Route path="/cart/:tableId" component={Cart} />
       <Route path="/order/:orderId" component={OrderStatus} />
+      <Route path="/table/:tableId/orders" component={TableOrders} />
       <Route component={NotFound} />
     </Switch>
   );
