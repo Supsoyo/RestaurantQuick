@@ -5,8 +5,6 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { CheckCircle2, Clock, ChefHat, TruckIcon } from "lucide-react";
 import { type Order, type OrderItem } from "@shared/schema";
-import { Button } from "@/components/ui/button";
-import { useLocation, useNavigate } from "react-router-dom";
 
 interface OrderWithItems extends Order {
   items: OrderItem[];
@@ -26,7 +24,6 @@ export default function OrderStatus() {
   const { orderId } = useParams();
   const [order, setOrder] = useState<OrderWithItems | null>(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
     // Load order from localStorage
@@ -58,7 +55,7 @@ export default function OrderStatus() {
     }, 10000);
 
     return () => clearInterval(interval);
-  }, [orderId, navigate]);
+  }, [orderId]);
 
   if (loading) {
     return (
@@ -160,16 +157,6 @@ export default function OrderStatus() {
           </div>
         </CardContent>
       </Card>
-      {order.status === "completed" && (
-        <div className="mt-6">
-          <Button
-            className="w-full"
-            onClick={() => navigate(`/menu/${order.tableId}`)}
-          >
-            הזמנה חדשה
-          </Button>
-        </div>
-      )}
     </div>
   );
 }

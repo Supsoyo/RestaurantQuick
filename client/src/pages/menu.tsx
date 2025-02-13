@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link, useParams, useLocation, useNavigate } from "wouter";
+import { Link, useParams } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart } from "lucide-react";
@@ -11,8 +11,6 @@ import { useToast } from "@/hooks/use-toast";
 export default function Menu() {
   const { tableId } = useParams();
   const { toast } = useToast();
-  const location = useLocation();
-  const navigate = useNavigate();
 
   const { data: menuItems, isLoading } = useQuery<MenuItem[]>({
     queryKey: ["/api/menu"],
@@ -24,11 +22,21 @@ export default function Menu() {
       excludeIngredients: string[];
       specialInstructions: string;
     };
-  }, quantity: number) => {
+  } ,quantity: number) => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-
+    
     cart.push(item);
     localStorage.setItem("cart", JSON.stringify(cart));
+    // localStorage.removeItem("cart");
+
+    
+    // Accessing quantity for each item
+
+      console.log(`Item: ${item.name}, Quantity: ${item.quantity.quantity.toString()}`);
+    const quantityPropertyNames = Object.keys(item.quantity);
+    console.log(quantityPropertyNames); // ["amount"]
+ 
+
 
     toast({
       title: "נוסף לסל",
@@ -36,8 +44,10 @@ export default function Menu() {
         item.quantity.customizations?.excludeIngredients.length
           ? ` (ללא ${item.quantity.customizations.excludeIngredients.join(", ")})`
           : ""
+        
       }`,
-      onClick: () => navigate(`/cart/${tableId}`),
+       onClick: () => location.href = `/cart/${tableId}`, // Redirects on click
+      
     });
   };
 
@@ -66,19 +76,11 @@ export default function Menu() {
         <div className="flex justify-between items-center max-w-4xl mx-auto p-4">
           <h1 className="text-2xl font-bold">מה בא לנו היום?</h1>
 
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => navigate(`/table/${tableId}/orders`)}
-            >
-              ההזמנות שלי
+          <Link href={`/cart/${tableId}`}>
+            <Button variant="outline" size="icon">
+              <ShoppingCart className="h-5 w-5" />
             </Button>
-            <Link href={`/cart/${tableId}`}>
-              <Button variant="outline" size="icon">
-                <ShoppingCart className="h-5 w-5" />
-              </Button>
-            </Link>
-          </div>
+          </Link>
         </div>
 
         <div className="overflow-x-auto scrollbar-hide border-t bg-card">
