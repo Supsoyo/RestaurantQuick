@@ -104,10 +104,11 @@ export default function Cart() {
       toast({
         title: "ההזמנה בוצעה!",
         description: `הזמנה מספר ${order.id} התקבלה בהצלחה.`,
+        onClick: () => setLocation(`/order/${order.id}`), // Clicking toast navigates to order status
       });
 
-      // Redirect to order status page
-      setLocation(`/order/${order.id.toString()}`);
+      // Redirect to menu
+      setLocation(`/menu/${tableId}`);
     } catch (error) {
       console.error("Error placing order:", error);
       toast({

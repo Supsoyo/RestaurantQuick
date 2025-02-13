@@ -6,6 +6,7 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Menu from "@/pages/menu";
 import Cart from "@/pages/cart";
+import Orders from "@/pages/orders";
 import OrderStatus from "@/pages/order-status";
 
 function Router() {
@@ -14,6 +15,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/menu/:tableId" component={Menu} />
       <Route path="/cart/:tableId" component={Cart} />
+      <Route path="/orders/:tableId" component={Orders} />
       <Route path="/order/:orderId" component={OrderStatus} />
       <Route component={NotFound} />
     </Switch>
