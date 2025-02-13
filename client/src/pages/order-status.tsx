@@ -3,8 +3,9 @@ import { useParams } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { CheckCircle2, Clock, ChefHat, TruckIcon } from "lucide-react";
+import { CheckCircle2, Clock, ChefHat, TruckIcon, ArrowLeft } from "lucide-react";
 import { type Order, type OrderItem } from "@shared/schema";
+import { Button } from "@/components/ui/button";
 
 interface OrderWithItems extends Order {
   items: OrderItem[];
@@ -90,7 +91,17 @@ export default function OrderStatus() {
 
   return (
     <div className="min-h-screen p-4 max-w-md mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Order #{order.id}</h1>
+      <header className="mb-6">
+        <Button
+          variant="ghost"
+          className="mb-4"
+          onClick={() => window.history.back()}
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          חזרה
+        </Button>
+        <h1 className="text-2xl font-bold">הזמנה #{order.id}</h1>
+      </header>
 
       <Card className="mb-6">
         <CardContent className="p-6">
@@ -122,7 +133,7 @@ export default function OrderStatus() {
 
       <Card>
         <CardContent className="p-6">
-          <h2 className="font-medium mb-4">Order Summary</h2>
+          <h2 className="font-medium mb-4">סיכום הזמנה</h2>
           <div className="space-y-4">
             {order.items.map((item) => (
               <div key={item.id} className="flex justify-between items-center">
@@ -140,17 +151,17 @@ export default function OrderStatus() {
             <Separator />
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <span>Subtotal</span>
+                <span>סכום ביניים</span>
                 <span>${(Number(order.total) - Number(order.tipAmount || 0)).toFixed(2)}</span>
               </div>
               {order.tipAmount && Number(order.tipAmount) > 0 && (
                 <div className="flex justify-between items-center">
-                  <span>Tip</span>
+                  <span>טיפ</span>
                   <span>${Number(order.tipAmount).toFixed(2)}</span>
                 </div>
               )}
               <div className="flex justify-between items-center font-medium">
-                <span>Total</span>
+                <span>סה״כ</span>
                 <span>${Number(order.total).toFixed(2)}</span>
               </div>
             </div>
