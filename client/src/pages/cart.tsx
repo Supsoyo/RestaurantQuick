@@ -167,6 +167,10 @@ export default function Cart() {
   const total = subtotal + tipAmount;
 
   return (
+
+
+
+    
     <div className="min-h-screen p-4">
       <header className="mb-6">
         <Button
@@ -198,27 +202,34 @@ export default function Cart() {
                     className="w-20 h-20 object-cover rounded"
                   />
                   <div className="flex-1">
+                    <h2 className="text-lg font-bold">{Object.keys(item.quantity.customizations).join(", ")}</h2>
+                    <h2 className="text-lg font-bold">{item.quantity.customizations.selectedOptions.meatType}</h2>
                     <h3 className="font-medium">{item.name}</h3>
                     <p className="text-sm text-muted-foreground">
                       ₪{Number(item.price).toFixed(2)} ליחידה
                       {item.customizations?.additionalPrice > 0 && (
                         <span className="mr-1">
-                          + ₪{item.customizations.additionalPrice.toFixed(2)}{" "}
+                          + ₪{item.quantity.customizations.additionalPrice}{" "}
                           תוספות
                         </span>
+
                       )}
+                      <span className="mr-1">
+                        + ₪{item.quantity.customizations.additionalPrice}{" "}
+                        תוספות
+                      </span>
                     </p>
                     {/* Show customizations */}
                     {item.customizations && (
                       <div className="text-sm text-muted-foreground mt-1">
                         {/* Show selected options */}
                         {item.customizations.selectedOptions?.meatType && (
-                          <p>סוג בשר: {item.customizations.selectedOptions.meatType}</p>
+                          <p>סוג בשר: {item.quantity.customizations.selectedOptions.meatType}</p>
                         )}
-                        {item.customizations.selectedOptions?.bunType && (
-                          <p>לחמנייה: {item.customizations.selectedOptions.bunType}</p>
+                        {item.quantity.customizations.selectedOptions?.bunType && (
+                          <p>לחמנייה: {item.quantity.customizations.selectedOptions.bunType}</p>
                         )}
-                        {item.customizations.selectedOptions?.drink && (
+                        {item.quantity.customizations.selectedOptions?.drink && (
                           <p>שתייה: {item.customizations.selectedOptions.drink}</p>
                         )}
                         {/* Show toppings */}
@@ -229,15 +240,16 @@ export default function Cart() {
                           </p>
                         )}
                         {/* Show excluded ingredients */}
-                        {item.customizations.excludeIngredients?.length > 0 && (
+                        {item.quantity.customizations.excludeIngredients?.length > 0 && (
                           <p>
-                            ללא: {item.customizations.excludeIngredients.join(", ")}
+                            ללא: {item.quantity.customizations.excludeIngredients.join(", ")}
+                             {Object.keys(item)}
                           </p>
                         )}
                         {/* Show special instructions */}
-                        {item.customizations.specialInstructions && (
+                        {item.quantity.customizations.specialInstructions && (
                           <p>
-                            הערות: {item.customizations.specialInstructions}
+                            הערות: {item.quantity.customizations.specialInstructions}
                           </p>
                         )}
                       </div>
@@ -246,19 +258,19 @@ export default function Cart() {
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => updateQuantity(index, item.quantity - 1)}
+                        onClick={() => updateQuantity(index, item.quantity.quantity - 1)}
                       >
-                        {item.quantity === 1 ? (
+                        {item.quantity.quantity === 1 ? (
                           <Trash2 className="h-4 w-4" />
                         ) : (
                           <Minus className="h-4 w-4" />
                         )}
                       </Button>
-                      <span className="w-8 text-center">{item.quantity}</span>
+                      <span className="w-8 text-center">{item.quantity.quantity}</span>
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => updateQuantity(index, item.quantity + 1)}
+                        onClick={() => updateQuantity(index, item.quantity.quantity + 1)}
                       >
                         <Plus className="h-4 w-4" />
                       </Button>

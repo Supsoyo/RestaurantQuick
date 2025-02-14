@@ -34,6 +34,10 @@ export default function Menu() {
     cart.push(item);
     localStorage.setItem("cart", JSON.stringify(cart));
 
+    
+    // // Clear cart
+    // localStorage.removeItem("cart");
+
     toast({
       title: "נוסף לסל",
       description: `${item.quantity}x ${item.name}${
