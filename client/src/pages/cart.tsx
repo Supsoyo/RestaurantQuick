@@ -316,25 +316,7 @@ export default function Cart() {
                 {/* Quantity Controls */}
                 <div className="flex items-center justify-between p-4 border-t">
                   <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => updateQuantity(index, item.quantity - 1)}
-                    >
-                      {item.quantity === 1 ? (
-                        <Trash2 className="h-4 w-4" />
-                      ) : (
-                        <Minus className="h-4 w-4" />
-                      )}
-                    </Button>
-                    <span className="w-8 text-center">{item.quantity}</span>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => updateQuantity(index, item.quantity + 1)}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
+
                   </div>
 
                   {/* Item Total */}
