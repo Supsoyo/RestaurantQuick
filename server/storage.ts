@@ -47,7 +47,7 @@ export class MemStorage implements IStorage {
         ],
       },
       {
-        name: "המבורגר קלאסי",
+        name: "המבורגר קלאסי ארוחה",
         description: "נתחי בקר טרי, חסה, עגבניה ורוטב הבית",
         price: "59.00",
         category: "ראשונות",
@@ -56,6 +56,14 @@ export class MemStorage implements IStorage {
           { possibleIngredients: ["עגבנייה", "בצל", "חסה", "לוטוס"], name: "תוספות" },
           { possibleIngredients: ["בקבוק מים", "שתייה מוגזת", "מיץ טבעי"], name: "משקה" },
         ],
+      },
+      {
+        name: "המבורגר קלאסי",
+        description: "נתחי בקר טרי, חסה, עגבניה ורוטב הבית",
+        price: "59.00",
+        category: "ראשונות",
+        imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd",
+        checkLists: [ ],
       },
       {
         name: "סלט ירקות",

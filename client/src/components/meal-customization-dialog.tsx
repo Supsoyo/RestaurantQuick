@@ -76,6 +76,13 @@ export default function MealCustomizationDialog({
     onClose();
   };
 
+  const addDrinkFirst = () => {
+    const newInstructions = specialInstructions.trim()
+      ? `${specialInstructions.trim()}, drink first`
+      : "drink first";
+    setSpecialInstructions(newInstructions);
+  };
+
   const totalPrice = Number(item.price) * quantity;
 
   return (
@@ -154,7 +161,17 @@ export default function MealCustomizationDialog({
           ))}
 
           <div className="space-y-2">
-            <Label>הערות מיוחדות:</Label>
+            <div className="flex justify-between items-center">
+              <Label>הערות מיוחדות:</Label>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={addDrinkFirst}
+                type="button"
+              >
+                הגש משקה ראשון
+              </Button>
+            </div>
             <Textarea
               value={specialInstructions}
               onChange={(e) => setSpecialInstructions(e.target.value)}
