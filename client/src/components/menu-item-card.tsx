@@ -12,6 +12,13 @@ interface MenuItemCardProps {
     customizations?: {
       excludeIngredients: string[];
       specialInstructions: string;
+      selectedOptions: {
+        meatType?: string;
+        bunType?: string;
+        drink?: string;
+        toppings: string[];
+      };
+      additionalPrice: number;
     };
   }) => void;
 }
@@ -23,6 +30,13 @@ export default function MenuItemCard({ item, onAddToCart }: MenuItemCardProps) {
   const handleAddToCart = (customizations?: {
     excludeIngredients: string[];
     specialInstructions: string;
+    selectedOptions: {
+      meatType?: string;
+      bunType?: string;
+      drink?: string;
+      toppings: string[];
+    };
+    additionalPrice: number;
   }) => {
     onAddToCart({
       ...item,
@@ -42,12 +56,9 @@ export default function MenuItemCard({ item, onAddToCart }: MenuItemCardProps) {
           onClick={() => setShowCustomization(true)}
         />
       </div>
-      <Card className="flex-1 overflow-visible hover:shadow-lg transition-shadow w-24 max-w-md mx-auto rounded-none h-full"
-        >
-        <div className="flex items-center gap-0 p-2"
-          >
-          <div className="flex-1"
-            >
+      <Card className="flex-1 overflow-visible hover:shadow-lg transition-shadow w-24 max-w-md mx-auto rounded-none h-full">
+        <div className="flex items-center gap-0 p-2">
+          <div className="flex-1">
             <div className="flex justify-between items-start mb-2"
               onClick={() => setShowCustomization(true)}>
               <div>
@@ -67,7 +78,11 @@ export default function MenuItemCard({ item, onAddToCart }: MenuItemCardProps) {
                   className="h-8 w-8"
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                 >
-                  <Minus className="h-4 w-4" />
+                  {quantity === 1 ? (
+                    <Minus className="h-4 w-4" />
+                  ) : (
+                    <Minus className="h-4 w-4" />
+                  )}
                 </Button>
                 <span className="w-8 text-center">{quantity}</span>
                 <Button
@@ -96,7 +111,10 @@ export default function MenuItemCard({ item, onAddToCart }: MenuItemCardProps) {
         item={item}
         open={showCustomization}
         onClose={() => setShowCustomization(false)}
-        onConfirm={(customizations) => handleAddToCart(customizations)}
+        onConfirm={(customizations) => {
+          handleAddToCart(customizations);
+          setShowCustomization(false);
+        }}
       />
     </div>
   );
