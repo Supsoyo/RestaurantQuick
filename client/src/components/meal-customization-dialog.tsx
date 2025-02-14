@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { type MenuItem } from "@shared/schema";
+import { Minus, Plus } from "lucide-react";
 
 interface MealCustomizationDialogProps {
   item: MenuItem;
@@ -20,6 +21,7 @@ interface MealCustomizationDialogProps {
     excludeIngredients: string[];
     specialInstructions: string;
     selectedIngredients: Record<string, string[]>;
+    quantity: number;
   }) => void;
 }
 
@@ -31,6 +33,7 @@ export default function MealCustomizationDialog({
 }: MealCustomizationDialogProps) {
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [excludeIngredients, setExcludeIngredients] = useState<string[]>([]);
+  const [quantity, setQuantity] = useState(1);
   const [selectedIngredients, setSelectedIngredients] = useState<Record<string, string[]>>(() => {
     const initial: Record<string, string[]> = {};
     item.checkLists?.forEach(checklist => {
@@ -57,9 +60,23 @@ export default function MealCustomizationDialog({
       excludeIngredients,
       specialInstructions,
       selectedIngredients,
+      quantity,
+    });
+    // Reset state after confirming
+    setQuantity(1);
+    setExcludeIngredients([]);
+    setSpecialInstructions("");
+    setSelectedIngredients(() => {
+      const initial: Record<string, string[]> = {};
+      item.checkLists?.forEach(checklist => {
+        initial[checklist.name] = [];
+      });
+      return initial;
     });
     onClose();
   };
+
+  const totalPrice = Number(item.price) * quantity;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -69,6 +86,31 @@ export default function MealCustomizationDialog({
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              >
+                <Minus className="h-4 w-4" />
+              </Button>
+              <span className="w-8 text-center">{quantity}</span>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setQuantity(quantity + 1)}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="text-lg font-semibold">
+              סה"כ: ₪{totalPrice.toFixed(2)}
+            </div>
+          </div>
+
           <div className="space-y-4">
             <Label>הסר רכיבים:</Label>
             {ingredients.map((ingredient) => (
@@ -131,7 +173,7 @@ export default function MealCustomizationDialog({
             ביטול
           </Button>
           <Button type="button" onClick={handleConfirm}>
-            אישור
+            הוסף להזמנה
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { type MenuItem } from '@shared/schema';
-import { Minus, Plus } from 'lucide-react';
 import MealCustomizationDialog from './meal-customization-dialog';
 
 interface MenuItemCardProps {
@@ -17,21 +16,23 @@ interface MenuItemCardProps {
 }
 
 export default function MenuItemCard({ item, onAddToCart }: MenuItemCardProps) {
-  const [quantity, setQuantity] = useState(1);
   const [showCustomization, setShowCustomization] = useState(false);
 
-  const handleAddToCart = (item: MenuItem, quantity: number, customizations?: { 
+  const handleAddToCart = (customizations: { 
     excludeIngredients: string[];
     specialInstructions: string;
     selectedIngredients: Record<string, string[]>;
+    quantity: number;
   }) => {
     onAddToCart(
       item,
-      quantity,
-      customizations,
+      customizations.quantity,
+      {
+        excludeIngredients: customizations.excludeIngredients,
+        specialInstructions: customizations.specialInstructions,
+        selectedIngredients: customizations.selectedIngredients,
+      }
     );
-    setQuantity(1);
-    setShowCustomization(false);
   };
 
   return (
@@ -58,27 +59,7 @@ export default function MenuItemCard({ item, onAddToCart }: MenuItemCardProps) {
               </span>
             </div>
 
-            <div className="flex justify-between items-center mt-4">
-              <div className="flex items-center gap-0">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-                <span className="w-8 text-center">{quantity}</span>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setQuantity(quantity + 1)}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-
+            <div className="flex justify-end mt-4">
               <Button 
                 variant="secondary"
                 className="px-6 p-2"
@@ -95,7 +76,7 @@ export default function MenuItemCard({ item, onAddToCart }: MenuItemCardProps) {
         item={item}
         open={showCustomization}
         onClose={() => setShowCustomization(false)}
-        onConfirm={(customizations) => handleAddToCart(item, quantity, customizations)}
+        onConfirm={handleAddToCart}
       />
     </div>
   );
