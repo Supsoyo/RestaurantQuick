@@ -19,6 +19,7 @@ interface MealCustomizationDialogProps {
   onConfirm: (customizations: { 
     excludeIngredients: string[];
     specialInstructions: string;
+    selectedIngredients: Record<string, string[]>;
   }) => void;
 }
 
@@ -30,21 +31,32 @@ export default function MealCustomizationDialog({
 }: MealCustomizationDialogProps) {
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [excludeIngredients, setExcludeIngredients] = useState<string[]>([]);
+  const [selectedIngredients, setSelectedIngredients] = useState<Record<string, string[]>>(() => {
+    const initial: Record<string, string[]> = {};
+    item.checkLists?.forEach(checklist => {
+      initial[checklist.name] = [];
+    });
+    return initial;
+  });
 
   // Extract ingredients from the description
   const ingredients = item.description.split(',').map(i => i.trim());
-  try {
-    // console.log("57 Quantity:");
-    // localStorage.removeItem("cart");
-    // const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-    // console.log("🔍 Current Cart Before Adding Item:", JSON.stringify(cart, null, 2));
-  } catch (error) {
-    console.error("Error accessing quantity:", error);
-  }
+
+  const toggleIngredient = (checklistName: string, ingredient: string) => {
+    setSelectedIngredients(prev => {
+      const current = prev[checklistName] || [];
+      const updated = current.includes(ingredient)
+        ? current.filter(i => i !== ingredient)
+        : [...current, ingredient];
+      return { ...prev, [checklistName]: updated };
+    });
+  };
+
   const handleConfirm = () => {
     onConfirm({
       excludeIngredients,
       specialInstructions,
+      selectedIngredients,
     });
     onClose();
   };
@@ -62,7 +74,7 @@ export default function MealCustomizationDialog({
             {ingredients.map((ingredient) => (
               <div key={ingredient} className="flex items-center space-x-2">
                 <Checkbox
-                  id={ingredient}
+                  id={`exclude-${ingredient}`}
                   checked={excludeIngredients.includes(ingredient)}
                   onCheckedChange={(checked) => {
                     if (checked) {
@@ -74,12 +86,30 @@ export default function MealCustomizationDialog({
                     }
                   }}
                 />
-                <Label htmlFor={ingredient} className="mr-2">
+                <Label htmlFor={`exclude-${ingredient}`} className="mr-2">
                   {ingredient}
                 </Label>
               </div>
             ))}
           </div>
+
+          {item.checkLists?.map((checklist, index) => (
+            <div key={index} className="space-y-4">
+              <Label>{checklist.name}:</Label>
+              {checklist.possibleIngredients.map((ingredient) => (
+                <div key={ingredient} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`${checklist.name}-${ingredient}`}
+                    checked={selectedIngredients[checklist.name]?.includes(ingredient)}
+                    onCheckedChange={() => toggleIngredient(checklist.name, ingredient)}
+                  />
+                  <Label htmlFor={`${checklist.name}-${ingredient}`} className="mr-2">
+                    {ingredient}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          ))}
 
           <div className="space-y-2">
             <Label>הערות מיוחדות:</Label>

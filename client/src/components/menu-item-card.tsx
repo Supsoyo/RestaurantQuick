@@ -7,12 +7,12 @@ import MealCustomizationDialog from './meal-customization-dialog';
 
 interface MenuItemCardProps {
   item: MenuItem;
-  onAddToCart: (item: MenuItem ,
+  onAddToCart: (item: MenuItem,
     quantity: number,
     customizations?: {
       excludeIngredients: string[];
       specialInstructions: string;
-
+      selectedIngredients: Record<string, string[]>;
   }) => void;
 }
 
@@ -23,26 +23,15 @@ export default function MenuItemCard({ item, onAddToCart }: MenuItemCardProps) {
   const handleAddToCart = (item: MenuItem, quantity: number, customizations?: { 
     excludeIngredients: string[];
     specialInstructions: string;
+    selectedIngredients: Record<string, string[]>;
   }) => {
-    console.log("vsdvdv 27 ",quantity);  // Should output the correct quantity
-    // onAddToCart(item, quantity, customizations);
-    // console.log(` menu item catd Item: ${item.name}, Quantity: ${quantity.toString()}`);
-    try {
-      // console.log("line 30 Quantity:");
-    } catch (error) {
-      console.error("line 30 Error accessing quantity:", error);
-    }
-    // const newItem = {
-    //   ...item,
-    //   quantity,  // Quantity should be a number
-    //   customizations // Optional customizations
-    // };
     onAddToCart(
       item,
       quantity,
       customizations,
     );
     setQuantity(1);
+    setShowCustomization(false);
   };
 
   return (
@@ -55,12 +44,9 @@ export default function MenuItemCard({ item, onAddToCart }: MenuItemCardProps) {
           onClick={() => setShowCustomization(true)}
         />
       </div>
-      <Card className="flex-1 overflow-visible hover:shadow-lg transition-shadow w-24 max-w-md mx-auto rounded-none h-full"
-        >
-        <div className="flex items-center gap-0 p-2"
-          >
-          <div className="flex-1"
-            >
+      <Card className="flex-1 overflow-visible hover:shadow-lg transition-shadow w-24 max-w-md mx-auto rounded-none h-full">
+        <div className="flex items-center gap-0 p-2">
+          <div className="flex-1">
             <div className="flex justify-between items-start mb-2"
               onClick={() => setShowCustomization(true)}>
               <div>
@@ -109,7 +95,7 @@ export default function MenuItemCard({ item, onAddToCart }: MenuItemCardProps) {
         item={item}
         open={showCustomization}
         onClose={() => setShowCustomization(false)}
-        onConfirm={(customizations) => handleAddToCart(item, quantity,customizations)}
+        onConfirm={(customizations) => handleAddToCart(item, quantity, customizations)}
       />
     </div>
   );

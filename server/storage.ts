@@ -41,7 +41,10 @@ export class MemStorage implements IStorage {
         price: "59.00",
         category: "המיוחדות שלנו",
         imageUrl: "https://images.unsplash.com/photo-1470337458703-46ad1756a187",
-        checkLists:[{possibleIngredients:[ "עגבנייה", "בצל", "חסה"], name:"תוספות"},{possibleIngredients:[ "עגבנייה", "בצל", "חסה"], name:"תוספות"}]
+        checkLists: [
+          { possibleIngredients: ["עגבנייה", "בצל", "חסה", "רוטב הבית"], name: "תוספות" },
+          { possibleIngredients: ["לחם", "פיתה", "באגט"], name: "סוג לחם" },
+        ],
       },
       {
         name: "המבורגר קלאסי",
@@ -49,7 +52,10 @@ export class MemStorage implements IStorage {
         price: "59.00",
         category: "ראשונות",
         imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd",
-        checkLists:[{possibleIngredients:[ "עגבנייה", "בצל", "חסה"], name:"תוספות"}]
+        checkLists: [
+          { possibleIngredients: ["עגבנייה", "בצל", "חסה", "לוטוס"], name: "תוספות" },
+          { possibleIngredients: ["בקבוק מים", "שתייה מוגזת", "מיץ טבעי"], name: "משקה" },
+        ],
       },
       {
         name: "סלט ירקות",
@@ -57,7 +63,10 @@ export class MemStorage implements IStorage {
         price: "45.00",
         category: "ראשונות",
         imageUrl: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd",
-        checkLists:[{possibleIngredients:[ "עגבנייה", "בצל", "חסה"], name:"תוספות"}]
+        checkLists: [
+          { possibleIngredients: ["חסה", "עגבנייה", "קולורבי", "גזר"], name: "תוספות ירק" },
+          { possibleIngredients: ["שמן זית", "חומץ בלסמי", "לימון", "תיבול"], name: "רוטב" },
+        ],
       },
       {
         name: "פסטה ברוטב עגבניות",
@@ -65,7 +74,10 @@ export class MemStorage implements IStorage {
         price: "52.00",
         category: "עיקריות",
         imageUrl: "https://images.unsplash.com/photo-1473093295043-cdd812d0e601",
-        checkLists:[{possibleIngredients:[ "עגבנייה", "בצל", "חסה"], name:"תוספות"}]
+        checkLists: [
+          { possibleIngredients: ["פסטה", "רוטב עגבניות", "שום", "חול", "בזיליקום"], name: "הוספות" },
+          { possibleIngredients: ["גבינת פרמזן", "מוצרלה", "ריקוטה"], name: "הגשה" },
+        ],
       },
       {
         name: "טירמיסו",
@@ -73,9 +85,13 @@ export class MemStorage implements IStorage {
         price: "32.00",
         category: "קינוחים",
         imageUrl: "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9",
-        checkLists:[{possibleIngredients:[ "עגבנייה", "בצל", "חסה"], name:"תוספות"}]
+        checkLists: [
+          { possibleIngredients: ["קקאו", "מסקרפונה", "שוקולד מריר"], name: "עיטור" },
+          { possibleIngredients: ["קפוצ'ינו", "קפה נמס", "מים"], name: "רוטב קפה" },
+        ],
       },
     ];
+
 
     sampleMenuItems.forEach((item) => {
       const id = this.currentIds.menuItem++;
