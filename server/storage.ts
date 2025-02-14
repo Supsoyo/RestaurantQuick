@@ -41,6 +41,7 @@ export class MemStorage implements IStorage {
         price: "59.00",
         category: "המיוחדות שלנו",
         imageUrl: "https://images.unsplash.com/photo-1470337458703-46ad1756a187",
+        checkLists:[{possibleIngredients:[ "עגבנייה", "בצל", "חסה"], name:"תוספות"},{possibleIngredients:[ "עגבנייה", "בצל", "חסה"], name:"תוספות"}]
       },
       {
         name: "המבורגר קלאסי",
@@ -48,6 +49,7 @@ export class MemStorage implements IStorage {
         price: "59.00",
         category: "ראשונות",
         imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd",
+        checkLists:[{possibleIngredients:[ "עגבנייה", "בצל", "חסה"], name:"תוספות"}]
       },
       {
         name: "סלט ירקות",
@@ -55,6 +57,7 @@ export class MemStorage implements IStorage {
         price: "45.00",
         category: "ראשונות",
         imageUrl: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd",
+        checkLists:[{possibleIngredients:[ "עגבנייה", "בצל", "חסה"], name:"תוספות"}]
       },
       {
         name: "פסטה ברוטב עגבניות",
@@ -62,6 +65,7 @@ export class MemStorage implements IStorage {
         price: "52.00",
         category: "עיקריות",
         imageUrl: "https://images.unsplash.com/photo-1473093295043-cdd812d0e601",
+        checkLists:[{possibleIngredients:[ "עגבנייה", "בצל", "חסה"], name:"תוספות"}]
       },
       {
         name: "טירמיסו",
@@ -69,6 +73,7 @@ export class MemStorage implements IStorage {
         price: "32.00",
         category: "קינוחים",
         imageUrl: "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9",
+        checkLists:[{possibleIngredients:[ "עגבנייה", "בצל", "חסה"], name:"תוספות"}]
       },
     ];
 

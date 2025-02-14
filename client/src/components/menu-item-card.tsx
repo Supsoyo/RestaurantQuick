@@ -7,12 +7,12 @@ import MealCustomizationDialog from './meal-customization-dialog';
 
 interface MenuItemCardProps {
   item: MenuItem;
-  onAddToCart: (item: MenuItem & {
-    quantity: number;
+  onAddToCart: (item: MenuItem ,
+    quantity: number,
     customizations?: {
       excludeIngredients: string[];
       specialInstructions: string;
-    };
+
   }) => void;
 }
 
@@ -20,15 +20,28 @@ export default function MenuItemCard({ item, onAddToCart }: MenuItemCardProps) {
   const [quantity, setQuantity] = useState(1);
   const [showCustomization, setShowCustomization] = useState(false);
 
-  const handleAddToCart = (customizations?: {
+  const handleAddToCart = (item: MenuItem, quantity: number, customizations?: { 
     excludeIngredients: string[];
     specialInstructions: string;
   }) => {
-    onAddToCart({
-      ...item,
+    console.log("vsdvdv 27 ",quantity);  // Should output the correct quantity
+    // onAddToCart(item, quantity, customizations);
+    // console.log(` menu item catd Item: ${item.name}, Quantity: ${quantity.toString()}`);
+    try {
+      // console.log("line 30 Quantity:");
+    } catch (error) {
+      console.error("line 30 Error accessing quantity:", error);
+    }
+    // const newItem = {
+    //   ...item,
+    //   quantity,  // Quantity should be a number
+    //   customizations // Optional customizations
+    // };
+    onAddToCart(
+      item,
       quantity,
       customizations,
-    });
+    );
     setQuantity(1);
   };
 
@@ -96,7 +109,7 @@ export default function MenuItemCard({ item, onAddToCart }: MenuItemCardProps) {
         item={item}
         open={showCustomization}
         onClose={() => setShowCustomization(false)}
-        onConfirm={(customizations) => handleAddToCart(customizations)}
+        onConfirm={(customizations) => handleAddToCart(item, quantity,customizations)}
       />
     </div>
   );

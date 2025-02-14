@@ -16,33 +16,39 @@ export default function Menu() {
     queryKey: ["/api/menu"],
   });
 
-  const handleAddToCart = (item: MenuItem & {
-    quantity: number;
-    customizations?: {
+  const handleAddToCart = (item: MenuItem ,
+    quantity: number,
+    customizations: {
       excludeIngredients: string[];
       specialInstructions: string;
-    };
-  }, quantity: number) => {
+    }
+  ) => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-
-    cart.push(item);
+    const itemAndQuantity = item
+    itemAndQuantity.quantity = quantity;
+    itemAndQuantity.customizations = customizations;
+    cart.push(itemAndQuantity);
     localStorage.setItem("cart", JSON.stringify(cart));
     // localStorage.removeItem("cart");
 
 
     // Accessing quantity for each item
+    // const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    // console.log("🔍 Current Cart Before Adding Item:", JSON.stringify(cart, null, 2));
 
-    console.log(`Item: ${item.name}, Quantity: ${item.quantity.quantity.toString()}`);
-    const quantityPropertyNames = Object.keys(item.quantity);
-    console.log(quantityPropertyNames); // ["amount"]
+    // console.log("vsdvdv 37");  // Should output the 
+    // console.log("quantity ",quantity);  // Should output the 
+    console.log(`Item: ${item.name}, Quantity: ${quantity}`);
+    // const quantityPropertyNames = Object.keys(item.quantity);
+    // console.log(quantityPropertyNames); // ["amount"]
 
 
 
     toast({
       title: "נוסף לסל",
-      description: `${item.quantity.quantity}x ${item.name}${
-        item.quantity.customizations?.excludeIngredients.length
-          ? ` (ללא ${item.quantity.customizations.excludeIngredients.join(", ")})`
+      description: `${quantity}x ${item.name}${
+        customizations?.excludeIngredients.length
+          ? ` (ללא ${customizations.excludeIngredients.join(", ")})`
           : ""
       }`,
       onClick: () => location.href = `/cart/${tableId}`, // Redirects on click
@@ -122,8 +128,8 @@ export default function Menu() {
                   <MenuItemCard
                     key={item.id}
                     item={item}
-                    onAddToCart={(quantity, customizations) =>
-                      handleAddToCart({ ...item, quantity, customizations })
+                    onAddToCart={(item, quantity, customizations) =>
+                      handleAddToCart(item, quantity, customizations) // Correct way
                     }
                   />
                 ))}

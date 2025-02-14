@@ -44,7 +44,7 @@ export default function Cart() {
     try {
       // Calculate total with tip
       const subtotal = items.reduce(
-        (sum, item) => sum + Number(item.price) * item.quantity?.quantity,
+        (sum, item) => sum + Number(item.price) * item.quantity,
         0
       );
       const tipAmount = tipPercentage === "custom"
@@ -63,7 +63,7 @@ export default function Cart() {
           total: total.toString(),
           items: items.map((item) => ({
             menuItemId: item.id,
-            quantity: item.quantity?.quantity,
+            quantity: item.quantity,
             price: Number(item.price),
           })),
           tipAmount: tipAmount.toString(),
@@ -86,7 +86,7 @@ export default function Cart() {
           id: Math.floor(Math.random() * 1000) + 1,
           orderId: 0,
           menuItemId: item.id,
-          quantity: item.quantity?.quantity,
+          quantity: item.quantity,
           price: Number(item.price),
         })),
         createdAt: new Date().toISOString(),
@@ -129,14 +129,14 @@ export default function Cart() {
     }
 
     const newItems = items.map((item, i) =>
-      i === index ? { ...item, quantity: { quantity: newQuantity } } : item
+      i === index ? { ...item, quantity:  newQuantity  } : item
     );
     setItems(newItems);
     localStorage.setItem("cart", JSON.stringify(newItems));
   };
 
   const subtotal = items.reduce(
-    (sum, item) => sum + Number(item.price) * item.quantity?.quantity,
+    (sum, item) => sum + Number(item.price) * item.quantity,
     0
   );
 
@@ -147,7 +147,7 @@ export default function Cart() {
   const total = subtotal + tipAmount;
 
   return (
-    <div className="min-h-screen p-4">
+    <div className="min-h-screen p-4" dir = "rtl">
       <header className="mb-6">
         <Button
           variant="ghost"
@@ -167,8 +167,10 @@ export default function Cart() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
-          {items.map((item, index) => (
+        <div className="space-y-4" >
+          {items.map((item, index) => {
+            console.log("Item at index", index, item); // Log the item data here
+            return (
             <Card key={index}>
               <CardContent className="p-4">
                 <div className="flex items-center gap-4">
@@ -178,7 +180,20 @@ export default function Cart() {
                     className="w-20 h-20 object-cover rounded"
                   />
                   <div className="flex-1">
-                    <h3 className="font-medium">{item.name}</h3>
+                    <h3 className="font-medium">{item.name}</h3>                      
+                    {item.customizations.excludeIngredients.length > 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      ללא: {item.customizations.excludeIngredients.join(", ")}
+              
+                    </p>):<p></p>}
+                    {item.customizations.specialInstructions.length > 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      הערה: {item.customizations.specialInstructions}
+              
+                    </p>):<p></p>}
+
+
+                    
                     <p className="text-sm text-muted-foreground">
                       ₪{Number(item.price).toFixed(2)} ליחידה
                     </p>
@@ -186,19 +201,19 @@ export default function Cart() {
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => updateQuantity(index, item.quantity?.quantity - 1)}
+                        onClick={() => updateQuantity(index, item.quantity - 1)}
                       >
-                        {item.quantity?.quantity === 1 ? (
+                        {item.quantity === 1 ? (
                           <Trash2 className="h-4 w-4" />
                         ) : (
                           <Minus className="h-4 w-4" />
                         )}
                       </Button>
-                      <span className="w-8 text-center">{item.quantity?.quantity}</span>
+                      <span className="w-8 text-center">{item.quantity}</span>
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => updateQuantity(index, item.quantity?.quantity + 1)}
+                        onClick={() => updateQuantity(index, item.quantity + 1)}
                       >
                         <Plus className="h-4 w-4" />
                       </Button>
@@ -206,13 +221,14 @@ export default function Cart() {
                   </div>
                   <div className="text-right">
                     <p className="font-medium">
-                      ₪{(Number(item.price) * item.quantity?.quantity).toFixed(2)}
+                      ₪{(Number(item.price) * item.quantity).toFixed(2)}
                     </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-          ))}
+          );
+        })}
 
           <Card className="mt-6">
             <CardContent className="p-4">

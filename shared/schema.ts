@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, decimal, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, decimal, timestamp ,jsonb} from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -9,6 +9,10 @@ export const menuItems = pgTable("menu_items", {
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
   category: text("category").notNull(),
   imageUrl: text("image_url").notNull(),
+  checkLists: jsonb("check_lists").notNull(), // Use jsonb to store structured data
+  
+  
+  
 });
 
 export const tables = pgTable("tables", {
@@ -32,6 +36,14 @@ export const orderItems = pgTable("order_items", {
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
 });
 
+
+// Define the structure for the checklist objects
+const checklistSchema = z.object({
+  name: z.string(), // Name of the checklist (e.g., "תוספות")
+  possibleIngredients: z.array(z.string()).min(1), // List of ingredients for this checklist (e.g., ["עגבנייה", "בצל", "חסה"])
+});
+
+
 export const insertMenuItemSchema = createInsertSchema(menuItems).pick({
   name: true,
   description: true,
@@ -39,6 +51,12 @@ export const insertMenuItemSchema = createInsertSchema(menuItems).pick({
   category: true,
   imageUrl: true,
 });
+
+// Create a custom schema that includes `checkLists` as an array of checklist objects
+export const customInsertMenuItemSchema = insertMenuItemSchema.extend({
+  checkLists: z.array(checklistSchema).min(1), // Custom validation for `checkLists` as an array of checklist objects
+});
+
 
 export const insertOrderSchema = createInsertSchema(orders).pick({
   tableId: true,
@@ -51,8 +69,12 @@ export const insertOrderSchema = createInsertSchema(orders).pick({
   }))
 });
 
+
+// You can now use this custom schema for your menu item creation
+export type InsertMenuItem = z.infer<typeof customInsertMenuItemSchema>;
+
 export type MenuItem = typeof menuItems.$inferSelect;
-export type InsertMenuItem = z.infer<typeof insertMenuItemSchema>;
+// export type InsertMenuItem = z.infer<typeof insertMenuItemSchema>;
 export type Order = typeof orders.$inferSelect;
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
 export type OrderItem = typeof orderItems.$inferSelect;

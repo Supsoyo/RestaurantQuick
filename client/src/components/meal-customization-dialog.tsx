@@ -33,7 +33,14 @@ export default function MealCustomizationDialog({
 
   // Extract ingredients from the description
   const ingredients = item.description.split(',').map(i => i.trim());
-
+  try {
+    // console.log("57 Quantity:");
+    // localStorage.removeItem("cart");
+    // const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    // console.log("🔍 Current Cart Before Adding Item:", JSON.stringify(cart, null, 2));
+  } catch (error) {
+    console.error("Error accessing quantity:", error);
+  }
   const handleConfirm = () => {
     onConfirm({
       excludeIngredients,
