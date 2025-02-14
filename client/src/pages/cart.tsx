@@ -14,6 +14,17 @@ import { Input } from "@/components/ui/input";
 
 interface CartItem extends MenuItem {
   quantity: number;
+  customizations?: {
+    selectedOptions?: {
+      meatType?: string;
+      bunType?: string;
+      drink?: string;
+      toppings?: string[];
+    };
+    excludeIngredients?: string[];
+    specialInstructions?: string;
+    additionalPrice: number;
+  };
 }
 
 const TIP_OPTIONS = [
@@ -44,7 +55,10 @@ export default function Cart() {
     try {
       // Calculate total with tip
       const subtotal = items.reduce(
-        (sum, item) => sum + Number(item.price) * item.quantity?.quantity,
+        (sum, item) =>
+          sum +
+          (Number(item.price) + (item.customizations?.additionalPrice || 0)) *
+            item.quantity,
         0
       );
       const tipAmount = tipPercentage === "custom"
@@ -63,8 +77,8 @@ export default function Cart() {
           total: total.toString(),
           items: items.map((item) => ({
             menuItemId: item.id,
-            quantity: item.quantity?.quantity,
-            price: Number(item.price),
+            quantity: item.quantity,
+            price: Number(item.price) + (item.customizations?.additionalPrice || 0), //Include customization price
           })),
           tipAmount: tipAmount.toString(),
           paymentIntentId: paymentIntent.id,
@@ -86,8 +100,8 @@ export default function Cart() {
           id: Math.floor(Math.random() * 1000) + 1,
           orderId: 0,
           menuItemId: item.id,
-          quantity: item.quantity?.quantity,
-          price: Number(item.price),
+          quantity: item.quantity,
+          price: Number(item.price) + (item.customizations?.additionalPrice || 0), //Include customization price
         })),
         createdAt: new Date().toISOString(),
       };
@@ -129,14 +143,17 @@ export default function Cart() {
     }
 
     const newItems = items.map((item, i) =>
-      i === index ? { ...item, quantity: { quantity: newQuantity } } : item
+      i === index ? { ...item, quantity: newQuantity } : item
     );
     setItems(newItems);
     localStorage.setItem("cart", JSON.stringify(newItems));
   };
 
   const subtotal = items.reduce(
-    (sum, item) => sum + Number(item.price) * item.quantity?.quantity,
+    (sum, item) =>
+      sum +
+      (Number(item.price) + (item.customizations?.additionalPrice || 0)) *
+        item.quantity,
     0
   );
 
@@ -181,24 +198,68 @@ export default function Cart() {
                     <h3 className="font-medium">{item.name}</h3>
                     <p className="text-sm text-muted-foreground">
                       ₪{Number(item.price).toFixed(2)} ליחידה
+                      {item.customizations?.additionalPrice > 0 && (
+                        <span className="mr-1">
+                          + ₪{item.customizations.additionalPrice.toFixed(2)}{" "}
+                          תוספות
+                        </span>
+                      )}
                     </p>
+                    {/* Show customizations */}
+                    {item.customizations && (
+                      <div className="text-sm text-muted-foreground mt-1">
+                        {/* Show selected options */}
+                        {item.customizations.selectedOptions?.meatType && (
+                          <p>סוג בשר: {item.customizations.selectedOptions.meatType}</p>
+                        )}
+                        {item.customizations.selectedOptions?.bunType && (
+                          <p>לחמנייה: {item.customizations.selectedOptions.bunType}</p>
+                        )}
+                        {item.customizations.selectedOptions?.drink && (
+                          <p>שתייה: {item.customizations.selectedOptions.drink}</p>
+                        )}
+                        {/* Show toppings */}
+                        {item.customizations.selectedOptions?.toppings.length > 0 && (
+                          <p>
+                            תוספות:{" "}
+                            {item.customizations.selectedOptions.toppings.join(", ")}
+                          </p>
+                        )}
+                        {/* Show excluded ingredients */}
+                        {item.customizations.excludeIngredients.length > 0 && (
+                          <p>
+                            ללא: {item.customizations.excludeIngredients.join(", ")}
+                          </p>
+                        )}
+                        {/* Show special instructions */}
+                        {item.customizations.specialInstructions && (
+                          <p>
+                            הערות: {item.customizations.specialInstructions}
+                          </p>
+                        )}
+                      </div>
+                    )}
                     <div className="flex items-center gap-2 mt-2">
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => updateQuantity(index, item.quantity?.quantity - 1)}
+                        onClick={() =>
+                          updateQuantity(index, item.quantity - 1)
+                        }
                       >
-                        {item.quantity?.quantity === 1 ? (
+                        {item.quantity === 1 ? (
                           <Trash2 className="h-4 w-4" />
                         ) : (
                           <Minus className="h-4 w-4" />
                         )}
                       </Button>
-                      <span className="w-8 text-center">{item.quantity?.quantity}</span>
+                      <span className="w-8 text-center">{item.quantity}</span>
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => updateQuantity(index, item.quantity?.quantity + 1)}
+                        onClick={() =>
+                          updateQuantity(index, item.quantity + 1)
+                        }
                       >
                         <Plus className="h-4 w-4" />
                       </Button>
@@ -206,7 +267,10 @@ export default function Cart() {
                   </div>
                   <div className="text-right">
                     <p className="font-medium">
-                      ₪{(Number(item.price) * item.quantity?.quantity).toFixed(2)}
+                      ₪
+                      {((Number(item.price) +
+                        (item.customizations?.additionalPrice || 0)) *
+                        item.quantity).toFixed(2)}
                     </p>
                   </div>
                 </div>
@@ -256,7 +320,9 @@ export default function Cart() {
                           min="0"
                           step="1"
                           value={customTipAmount}
-                          onChange={(e) => setCustomTipAmount(e.target.value)}
+                          onChange={(e) =>
+                            setCustomTipAmount(e.target.value)
+                          }
                           placeholder="0"
                           className="w-24"
                         />
@@ -268,7 +334,9 @@ export default function Cart() {
                 {(Number(tipPercentage) > 0 || tipPercentage === "custom") && (
                   <div className="flex justify-between items-center">
                     <span>
-                      {tipPercentage === "custom" ? "טיפ" : `טיפ (${tipPercentage}%)`}
+                      {tipPercentage === "custom"
+                        ? "טיפ"
+                        : `טיפ (${tipPercentage}%)`}
                     </span>
                     <span>₪{tipAmount.toFixed(2)}</span>
                   </div>

@@ -136,16 +136,49 @@ export default function OrderStatus() {
           <h2 className="font-medium mb-4">סיכום הזמנה</h2>
           <div className="space-y-4">
             {order.items.map((item) => (
-              <div key={item.id} className="flex justify-between items-center">
-                <div>
-                  <p className="font-medium">{item.quantity}x Menu Item</p>
-                  <p className="text-sm text-muted-foreground">
-                    ${Number(item.price).toFixed(2)} each
+              <div key={item.id} className="space-y-2">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="font-medium">{item.quantity}x {item.name}</p>
+                    {item.customizations && (
+                      <div className="text-sm text-muted-foreground mt-1">
+                        {/* Show selected options */}
+                        {item.customizations.selectedOptions?.meatType && (
+                          <p>סוג בשר: {item.customizations.selectedOptions.meatType}</p>
+                        )}
+                        {item.customizations.selectedOptions?.bunType && (
+                          <p>לחמנייה: {item.customizations.selectedOptions.bunType}</p>
+                        )}
+                        {item.customizations.selectedOptions?.drink && (
+                          <p>שתייה: {item.customizations.selectedOptions.drink}</p>
+                        )}
+                        {/* Show toppings */}
+                        {item.customizations.selectedOptions?.toppings.length > 0 && (
+                          <p>תוספות: {item.customizations.selectedOptions.toppings.join(", ")}</p>
+                        )}
+                        {/* Show excluded ingredients */}
+                        {item.customizations.excludeIngredients.length > 0 && (
+                          <p>ללא: {item.customizations.excludeIngredients.join(", ")}</p>
+                        )}
+                        {/* Show special instructions */}
+                        {item.customizations.specialInstructions && (
+                          <p>הערות: {item.customizations.specialInstructions}</p>
+                        )}
+                      </div>
+                    )}
+                    <p className="text-sm text-muted-foreground">
+                      ₪{Number(item.price).toFixed(2)} ליחידה
+                      {item.customizations?.additionalPrice > 0 && (
+                        <span className="mr-1">
+                          + ₪{item.customizations.additionalPrice.toFixed(2)} תוספות
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                  <p className="font-medium">
+                    ₪{((Number(item.price) + (item.customizations?.additionalPrice || 0)) * item.quantity).toFixed(2)}
                   </p>
                 </div>
-                <p className="font-medium">
-                  ${(Number(item.price) * item.quantity).toFixed(2)}
-                </p>
               </div>
             ))}
             <Separator />
