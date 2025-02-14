@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { type MenuItem, type Customizations } from '@shared/schema';
+import { type MenuItem } from '@shared/schema';
 import { Minus, Plus } from 'lucide-react';
 import MealCustomizationDialog from './meal-customization-dialog';
 
@@ -9,7 +9,10 @@ interface MenuItemCardProps {
   item: MenuItem;
   onAddToCart: (item: MenuItem & {
     quantity: number;
-    customizations?: Customizations;
+    customizations?: {
+      excludeIngredients: string[];
+      specialInstructions: string;
+    };
   }) => void;
 }
 
@@ -17,7 +20,10 @@ export default function MenuItemCard({ item, onAddToCart }: MenuItemCardProps) {
   const [quantity, setQuantity] = useState(1);
   const [showCustomization, setShowCustomization] = useState(false);
 
-  const handleAddToCart = (customizations?: Customizations) => {
+  const handleAddToCart = (customizations?: {
+    excludeIngredients: string[];
+    specialInstructions: string;
+  }) => {
     onAddToCart({
       ...item,
       quantity,
@@ -36,13 +42,14 @@ export default function MenuItemCard({ item, onAddToCart }: MenuItemCardProps) {
           onClick={() => setShowCustomization(true)}
         />
       </div>
-      <Card className="flex-1 overflow-visible hover:shadow-lg transition-shadow w-24 max-w-md mx-auto rounded-none h-full">
-        <div className="flex items-center gap-0 p-2">
-          <div className="flex-1">
-            <div 
-              className="flex justify-between items-start mb-2"
-              onClick={() => setShowCustomization(true)}
+      <Card className="flex-1 overflow-visible hover:shadow-lg transition-shadow w-24 max-w-md mx-auto rounded-none h-full"
+        >
+        <div className="flex items-center gap-0 p-2"
+          >
+          <div className="flex-1"
             >
+            <div className="flex justify-between items-start mb-2"
+              onClick={() => setShowCustomization(true)}>
               <div>
                 <h3 className="font-bold text-lg">{item.name}</h3>
                 <p className="text-sm text-muted-foreground">{item.description}</p>
@@ -85,17 +92,12 @@ export default function MenuItemCard({ item, onAddToCart }: MenuItemCardProps) {
         </div>
       </Card>
 
-      {item.customizationOptions && (
-        <MealCustomizationDialog
-          item={item}
-          open={showCustomization}
-          onClose={() => setShowCustomization(false)}
-          onConfirm={(customizations) => {
-            handleAddToCart(customizations);
-            setShowCustomization(false);
-          }}
-        />
-      )}
+      <MealCustomizationDialog
+        item={item}
+        open={showCustomization}
+        onClose={() => setShowCustomization(false)}
+        onConfirm={(customizations) => handleAddToCart(customizations)}
+      />
     </div>
   );
 }

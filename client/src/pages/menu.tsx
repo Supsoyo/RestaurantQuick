@@ -21,31 +21,32 @@ export default function Menu() {
     customizations?: {
       excludeIngredients: string[];
       specialInstructions: string;
-      selectedOptions: {
-        meatType?: string;
-        bunType?: string;
-        drink?: string;
-        toppings: string[];
-      };
-      additionalPrice: number;
     };
-  }) => {
+  }, quantity: number) => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+
     cart.push(item);
     localStorage.setItem("cart", JSON.stringify(cart));
-
-    
-    // // Clear cart
     // localStorage.removeItem("cart");
+
+
+    // Accessing quantity for each item
+
+    console.log(`Item: ${item.name}, Quantity: ${item.quantity.quantity.toString()}`);
+    const quantityPropertyNames = Object.keys(item.quantity);
+    console.log(quantityPropertyNames); // ["amount"]
+
+
 
     toast({
       title: "נוסף לסל",
-      description: `${item.quantity}x ${item.name}${
-        item.customizations?.excludeIngredients?.length
-          ? ` (ללא ${item.customizations.excludeIngredients.join(", ")})`
+      description: `${item.quantity.quantity}x ${item.name}${
+        item.quantity.customizations?.excludeIngredients.length
+          ? ` (ללא ${item.quantity.customizations.excludeIngredients.join(", ")})`
           : ""
       }`,
-      onClick: () => location.href = `/cart/${tableId}`,
+      onClick: () => location.href = `/cart/${tableId}`, // Redirects on click
+
     });
   };
 

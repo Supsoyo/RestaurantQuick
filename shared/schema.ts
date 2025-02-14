@@ -1,45 +1,7 @@
-import { pgTable, text, serial, integer, decimal, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, decimal, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Customization Types
-export const pricedOptionSchema = z.object({
-  id: z.string(),
-  label: z.string(),
-  price: z.number(),
-});
-
-export const itemCustomizationOptionsSchema = z.object({
-  meatTypes: z.array(pricedOptionSchema).optional(),
-  bunTypes: z.array(pricedOptionSchema).optional(),
-  drinks: z.array(pricedOptionSchema).optional(),
-  toppings: z.array(pricedOptionSchema).optional(),
-  allowsExcludeIngredients: z.boolean().optional(),
-  allowsSpecialInstructions: z.boolean().optional(),
-});
-
-export type PricedOption = z.infer<typeof pricedOptionSchema>;
-export type ItemCustomizationOptions = z.infer<typeof itemCustomizationOptionsSchema>;
-
-// Selected Customization Types
-export const selectedOptionsSchema = z.object({
-  meatType: z.string().optional(),
-  bunType: z.string().optional(),
-  drink: z.string().optional(),
-  toppings: z.array(z.string()).default([]),
-});
-
-export const customizationsSchema = z.object({
-  selectedOptions: selectedOptionsSchema,
-  excludeIngredients: z.array(z.string()).default([]),
-  specialInstructions: z.string().default(""),
-  additionalPrice: z.number().default(0),
-});
-
-export type SelectedOptions = z.infer<typeof selectedOptionsSchema>;
-export type Customizations = z.infer<typeof customizationsSchema>;
-
-// Database Tables
 export const menuItems = pgTable("menu_items", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -47,7 +9,6 @@ export const menuItems = pgTable("menu_items", {
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
   category: text("category").notNull(),
   imageUrl: text("image_url").notNull(),
-  customizationOptions: jsonb("customization_options").notNull().$type<ItemCustomizationOptions>(),
 });
 
 export const tables = pgTable("tables", {
@@ -69,29 +30,27 @@ export const orderItems = pgTable("order_items", {
   menuItemId: integer("menu_item_id").notNull(),
   quantity: integer("quantity").notNull(),
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
-  customizations: jsonb("customizations").$type<Customizations>(),
 });
 
-// Insert Schemas
-export const insertMenuItemSchema = createInsertSchema(menuItems).extend({
-  customizationOptions: itemCustomizationOptionsSchema,
-});
-
-export const insertOrderItemSchema = z.object({
-  menuItemId: z.number(),
-  quantity: z.number().min(1),
-  price: z.number(),
-  customizations: customizationsSchema.optional(),
+export const insertMenuItemSchema = createInsertSchema(menuItems).pick({
+  name: true,
+  description: true,
+  price: true,
+  category: true,
+  imageUrl: true,
 });
 
 export const insertOrderSchema = createInsertSchema(orders).pick({
   tableId: true,
   total: true,
 }).extend({
-  items: z.array(insertOrderItemSchema)
+  items: z.array(z.object({
+    menuItemId: z.number(),
+    quantity: z.number().min(1),
+    price: z.number(),
+  }))
 });
 
-// Types
 export type MenuItem = typeof menuItems.$inferSelect;
 export type InsertMenuItem = z.infer<typeof insertMenuItemSchema>;
 export type Order = typeof orders.$inferSelect;

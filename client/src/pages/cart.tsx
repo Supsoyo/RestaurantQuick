@@ -14,23 +14,6 @@ import { Input } from "@/components/ui/input";
 
 interface CartItem extends MenuItem {
   quantity: number;
-  customizations?: {
-    selectedOptions?: {
-      meatType?: string;
-      bunType?: string;
-      drink?: string;
-      toppings: string[];
-    };
-    excludeIngredients: string[];
-    specialInstructions: string;
-    additionalPrice: number;
-  };
-  customizationOptions?: {
-    meatTypes?: {id: string, label: string, price: number}[];
-    bunTypes?: {id: string, label: string, price: number}[];
-    drinks?: {id: string, label: string, price: number}[];
-    toppings?: {id: string, label: string, price: number}[];
-  }
 }
 
 const TIP_OPTIONS = [
@@ -61,10 +44,7 @@ export default function Cart() {
     try {
       // Calculate total with tip
       const subtotal = items.reduce(
-        (sum, item) =>
-          sum +
-          (Number(item.price) + (item.customizations?.additionalPrice || 0)) *
-            item.quantity,
+        (sum, item) => sum + Number(item.price) * item.quantity?.quantity,
         0
       );
       const tipAmount = tipPercentage === "custom"
@@ -83,8 +63,8 @@ export default function Cart() {
           total: total.toString(),
           items: items.map((item) => ({
             menuItemId: item.id,
-            quantity: item.quantity,
-            price: Number(item.price) + (item.customizations?.additionalPrice || 0),
+            quantity: item.quantity?.quantity,
+            price: Number(item.price),
           })),
           tipAmount: tipAmount.toString(),
           paymentIntentId: paymentIntent.id,
@@ -93,7 +73,6 @@ export default function Cart() {
 
       const order = await response.json();
 
-      // For development, create a mock order ID
       order.id = Math.floor(Math.random() * 1000) + 1;
 
       // Create mock order
@@ -105,12 +84,10 @@ export default function Cart() {
         tipAmount,
         items: items.map((item) => ({
           id: Math.floor(Math.random() * 1000) + 1,
-          orderId: order.id,
+          orderId: 0,
           menuItemId: item.id,
-          quantity: item.quantity,
-          price: Number(item.price) + (item.customizations?.additionalPrice || 0),
-          name: item.name,
-          customizations: item.customizations,
+          quantity: item.quantity?.quantity,
+          price: Number(item.price),
         })),
         createdAt: new Date().toISOString(),
       };
@@ -127,7 +104,7 @@ export default function Cart() {
       toast({
         title: "ההזמנה בוצעה!",
         description: `הזמנה מספר ${order.id} התקבלה בהצלחה.`,
-        onClick: () => setLocation(`/order/${order.id}`),
+        onClick: () => setLocation(`/order/${order.id}`), // Clicking toast navigates to order status
       });
 
       // Redirect to menu
@@ -152,17 +129,14 @@ export default function Cart() {
     }
 
     const newItems = items.map((item, i) =>
-      i === index ? { ...item, quantity: newQuantity } : item
+      i === index ? { ...item, quantity: { quantity: newQuantity } } : item
     );
     setItems(newItems);
     localStorage.setItem("cart", JSON.stringify(newItems));
   };
 
   const subtotal = items.reduce(
-    (sum, item) =>
-      sum +
-      (Number(item.price) + (item.customizations?.additionalPrice || 0)) *
-        item.quantity,
+    (sum, item) => sum + Number(item.price) * item.quantity?.quantity,
     0
   );
 
@@ -195,135 +169,44 @@ export default function Cart() {
       ) : (
         <div className="space-y-4">
           {items.map((item, index) => (
-            <Card key={index} className="overflow-hidden">
-              <CardContent className="p-0">
-                {/* Item Header */}
-                <div className="flex items-start gap-4 p-4 bg-muted/50">
+            <Card key={index}>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-4">
                   <img
                     src={item.imageUrl}
                     alt={item.name}
                     className="w-20 h-20 object-cover rounded"
                   />
                   <div className="flex-1">
-                    <h3 className="text-lg font-bold">{item.name}</h3>
-                    <p className="text-sm text-muted-foreground">{item.description}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-medium text-lg">
-                      ₪{Number(item.price).toFixed(2)}
+                    <h3 className="font-medium">{item.name}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      ₪{Number(item.price).toFixed(2)} ליחידה
                     </p>
-                    <p className="text-sm text-muted-foreground">מחיר בסיס</p>
-                  </div>
-                </div>
-
-                {/* Customizations Section */}
-                {item.customizations && (
-                  <div className="p-4 space-y-3 border-t">
-                    {/* Selected Options with Prices */}
-                    <div className="space-y-2">
-                      {item.customizations.selectedOptions?.meatType && (
-                        <div className="flex justify-between text-sm">
-                          <span>סוג בשר: {item.customizations.selectedOptions.meatType}</span>
-                          {item.customizationOptions?.meatTypes?.find(
-                            m => m.id === item.customizations?.selectedOptions.meatType
-                          )?.price > 0 && (
-                            <span>
-                              +₪{item.customizationOptions.meatTypes.find(
-                                m => m.id === item.customizations?.selectedOptions.meatType
-                              )?.price.toFixed(2)}
-                            </span>
-                          )}
-                        </div>
-                      )}
-
-                      {item.customizations.selectedOptions?.bunType && (
-                        <div className="flex justify-between text-sm">
-                          <span>לחמנייה: {item.customizations.selectedOptions.bunType}</span>
-                          {item.customizationOptions?.bunTypes?.find(
-                            b => b.id === item.customizations?.selectedOptions.bunType
-                          )?.price > 0 && (
-                            <span>
-                              +₪{item.customizationOptions.bunTypes.find(
-                                b => b.id === item.customizations?.selectedOptions.bunType
-                              )?.price.toFixed(2)}
-                            </span>
-                          )}
-                        </div>
-                      )}
-
-                      {item.customizations.selectedOptions?.drink && (
-                        <div className="flex justify-between text-sm">
-                          <span>שתייה: {item.customizations.selectedOptions.drink}</span>
-                          {item.customizationOptions?.drinks?.find(
-                            d => d.id === item.customizations?.selectedOptions.drink
-                          )?.price > 0 && (
-                            <span>
-                              +₪{item.customizationOptions.drinks.find(
-                                d => d.id === item.customizations?.selectedOptions.drink
-                              )?.price.toFixed(2)}
-                            </span>
-                          )}
-                        </div>
-                      )}
-
-                      {item.customizations.selectedOptions?.toppings.length > 0 && (
-                        <div className="text-sm">
-                          <div className="flex justify-between mb-1">
-                            <span>תוספות:</span>
-                            <span>מחיר</span>
-                          </div>
-                          {item.customizations.selectedOptions.toppings.map(toppingId => {
-                            const topping = item.customizationOptions?.toppings?.find(
-                              t => t.id === toppingId
-                            );
-                            return (
-                              <div key={toppingId} className="flex justify-between pl-4">
-                                <span>{topping?.label}</span>
-                                <span>+₪{topping?.price.toFixed(2)}</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Excluded Ingredients */}
-                    {item.customizations.excludeIngredients.length > 0 && (
-                      <div className="text-sm text-muted-foreground">
-                        <span className="font-medium">ללא: </span>
-                        {item.customizations.excludeIngredients.join(", ")}
-                      </div>
-                    )}
-
-                    {/* Special Instructions */}
-                    {item.customizations.specialInstructions && (
-                      <div className="text-sm text-muted-foreground">
-                        <span className="font-medium">הערות: </span>
-                        {item.customizations.specialInstructions}
-                      </div>
-                    )}
-
-                    {/* Total Price with Customizations */}
-                    <div className="flex justify-between items-center pt-2 border-t">
-                      <span className="font-medium">סה״כ עם תוספות:</span>
-                      <span className="font-bold text-lg">
-                        ₪{((Number(item.price) + item.customizations.additionalPrice)).toFixed(2)}
-                      </span>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => updateQuantity(index, item.quantity?.quantity - 1)}
+                      >
+                        {item.quantity?.quantity === 1 ? (
+                          <Trash2 className="h-4 w-4" />
+                        ) : (
+                          <Minus className="h-4 w-4" />
+                        )}
+                      </Button>
+                      <span className="w-8 text-center">{item.quantity?.quantity}</span>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => updateQuantity(index, item.quantity?.quantity + 1)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                )}
-
-                {/* Quantity Controls */}
-                <div className="flex items-center justify-between p-4 border-t">
-                  <div className="flex items-center gap-2">
-
-                  </div>
-
-                  {/* Item Total */}
                   <div className="text-right">
-                    <p className="text-sm text-muted-foreground">סה״כ למנה:</p>
-                    <p className="font-bold text-lg">
-                      ₪{((Number(item.price) + (item.customizations?.additionalPrice || 0)) * item.quantity).toFixed(2)}
+                    <p className="font-medium">
+                      ₪{(Number(item.price) * item.quantity?.quantity).toFixed(2)}
                     </p>
                   </div>
                 </div>
@@ -331,7 +214,6 @@ export default function Cart() {
             </Card>
           ))}
 
-          {/* Order Summary Card */}
           <Card className="mt-6">
             <CardContent className="p-4">
               <div className="space-y-4">
@@ -340,7 +222,6 @@ export default function Cart() {
                   <span>₪{subtotal.toFixed(2)}</span>
                 </div>
 
-                {/* Tip Section */}
                 <div className="space-y-2">
                   <Label>בחר אחוז טיפ:</Label>
                   <RadioGroup

@@ -1,29 +1,13 @@
 import { MenuItem, Order, OrderItem, Table, type InsertMenuItem, type InsertOrder } from "@shared/schema";
 
-// Define customization options types
-interface PricedOption {
-  id: string;
-  label: string;
-  price: number;
-}
-
-interface ItemCustomizationOptions {
-  meatTypes?: PricedOption[];
-  bunTypes?: PricedOption[];
-  drinks?: PricedOption[];
-  toppings?: PricedOption[];
-  allowsExcludeIngredients?: boolean;
-  allowsSpecialInstructions?: boolean;
-}
-
 export interface IStorage {
   // Menu Items
   getMenuItems(): Promise<MenuItem[]>;
   getMenuItem(id: number): Promise<MenuItem | undefined>;
-
+  
   // Tables
   getTable(id: number): Promise<Table | undefined>;
-
+  
   // Orders
   createOrder(order: InsertOrder): Promise<Order>;
   getOrder(id: number): Promise<Order | undefined>;
@@ -50,42 +34,13 @@ export class MemStorage implements IStorage {
   }
 
   private initializeSampleData() {
-    const hamburgerCustomizations: ItemCustomizationOptions = {
-      meatTypes: [
-        { id: 'beef', label: 'בקר רגיל', price: 0 },
-        { id: 'wagyu', label: 'בקר וואגיו', price: 30 },
-        { id: 'lamb', label: 'כבש', price: 15 },
-      ],
-      bunTypes: [
-        { id: 'regular', label: 'לחמניה רגילה', price: 0 },
-        { id: 'pretzel', label: 'לחמניית בייגל', price: 5 },
-        { id: 'gluten-free', label: 'ללא גלוטן', price: 8 },
-      ],
-      drinks: [
-        { id: 'none', label: 'ללא שתייה', price: 0 },
-        { id: 'cola', label: 'קולה', price: 12 },
-        { id: 'sprite', label: 'ספרייט', price: 12 },
-        { id: 'beer', label: 'בירה', price: 25 },
-      ],
-      toppings: [
-        { id: 'cheese', label: 'גבינה', price: 5 },
-        { id: 'egg', label: 'ביצת עין', price: 8 },
-        { id: 'bacon', label: 'בייקון', price: 10 },
-        { id: 'avocado', label: 'אבוקדו', price: 8 },
-        { id: 'mushrooms', label: 'פטריות', price: 6 },
-      ],
-      allowsExcludeIngredients: true,
-      allowsSpecialInstructions: true,
-    };
-
-    const sampleMenuItems: (InsertMenuItem & { customizationOptions?: ItemCustomizationOptions })[] = [
+    const sampleMenuItems: InsertMenuItem[] = [
       {
         name: "כריך המיוחד",
         description: "עגבניה, בצל, חסה, רוטב הבית",
         price: "59.00",
         category: "המיוחדות שלנו",
         imageUrl: "https://images.unsplash.com/photo-1470337458703-46ad1756a187",
-        customizationOptions: hamburgerCustomizations,
       },
       {
         name: "המבורגר קלאסי",
@@ -93,7 +48,6 @@ export class MemStorage implements IStorage {
         price: "59.00",
         category: "ראשונות",
         imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd",
-        customizationOptions: hamburgerCustomizations,
       },
       {
         name: "סלט ירקות",
@@ -151,9 +105,9 @@ export class MemStorage implements IStorage {
       total: insertOrder.total,
       createdAt: new Date(),
     };
-
+    
     this.orders.set(id, order);
-
+    
     const orderItems: OrderItem[] = insertOrder.items.map((item) => ({
       id: this.currentIds.orderItem++,
       orderId: id,
@@ -161,7 +115,7 @@ export class MemStorage implements IStorage {
       quantity: item.quantity,
       price: item.price,
     }));
-
+    
     this.orderItems.set(id, orderItems);
     return order;
   }
@@ -177,7 +131,7 @@ export class MemStorage implements IStorage {
   async updateOrderStatus(id: number, status: Order["status"]): Promise<Order> {
     const order = this.orders.get(id);
     if (!order) throw new Error("Order not found");
-
+    
     const updatedOrder = { ...order, status };
     this.orders.set(id, updatedOrder);
     return updatedOrder;
