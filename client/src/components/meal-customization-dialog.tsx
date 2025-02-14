@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { type MenuItem } from "@shared/schema";
+import { Separator } from "@/components/ui/separator";
 
 interface MealCustomizationDialogProps {
   item: MenuItem;
@@ -19,6 +20,7 @@ interface MealCustomizationDialogProps {
   onConfirm: (customizations: { 
     excludeIngredients: string[];
     specialInstructions: string;
+    selectedCheckListItems: { [key: string]: string[] };
   }) => void;
 }
 
@@ -30,23 +32,32 @@ export default function MealCustomizationDialog({
 }: MealCustomizationDialogProps) {
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [excludeIngredients, setExcludeIngredients] = useState<string[]>([]);
+  const [selectedCheckListItems, setSelectedCheckListItems] = useState<{ [key: string]: string[] }>({});
 
   // Extract ingredients from the description
   const ingredients = item.description.split(',').map(i => i.trim());
-  try {
-    // console.log("57 Quantity:");
-    // localStorage.removeItem("cart");
-    // const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-    // console.log("🔍 Current Cart Before Adding Item:", JSON.stringify(cart, null, 2));
-  } catch (error) {
-    console.error("Error accessing quantity:", error);
-  }
+
   const handleConfirm = () => {
     onConfirm({
       excludeIngredients,
       specialInstructions,
+      selectedCheckListItems,
     });
     onClose();
+  };
+
+  const handleCheckListItemToggle = (listName: string, itemValue: string) => {
+    setSelectedCheckListItems(prev => {
+      const currentList = prev[listName] || [];
+      const newList = currentList.includes(itemValue)
+        ? currentList.filter(item => item !== itemValue)
+        : [...currentList, itemValue];
+
+      return {
+        ...prev,
+        [listName]: newList
+      };
+    });
   };
 
   return (
@@ -57,6 +68,7 @@ export default function MealCustomizationDialog({
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
+          {/* Ingredients Section */}
           <div className="space-y-4">
             <Label>הסר רכיבים:</Label>
             {ingredients.map((ingredient) => (
@@ -81,6 +93,32 @@ export default function MealCustomizationDialog({
             ))}
           </div>
 
+          <Separator className="my-4" />
+
+          {/* CheckLists Section */}
+          {item.checkLists && Object.entries(item.checkLists).map(([listName, options]) => (
+            <div key={listName} className="space-y-4">
+              <Label>{listName}:</Label>
+              {options.map((option) => (
+                <div key={option} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`${listName}-${option}`}
+                    checked={(selectedCheckListItems[listName] || []).includes(option)}
+                    onCheckedChange={(checked) => {
+                      handleCheckListItemToggle(listName, option);
+                    }}
+                  />
+                  <Label htmlFor={`${listName}-${option}`} className="mr-2">
+                    {option}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          ))}
+
+          <Separator className="my-4" />
+
+          {/* Special Instructions Section */}
           <div className="space-y-2">
             <Label>הערות מיוחדות:</Label>
             <Textarea

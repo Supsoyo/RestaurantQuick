@@ -14,6 +14,11 @@ import { Input } from "@/components/ui/input";
 
 interface CartItem extends MenuItem {
   quantity: number;
+  customizations?: {
+    excludeIngredients: string[];
+    specialInstructions: string;
+    selectedCheckListItems: { [key: string]: string[] };
+  };
 }
 
 const TIP_OPTIONS = [
@@ -129,7 +134,7 @@ export default function Cart() {
     }
 
     const newItems = items.map((item, i) =>
-      i === index ? { ...item, quantity:  newQuantity  } : item
+      i === index ? { ...item, quantity: newQuantity } : item
     );
     setItems(newItems);
     localStorage.setItem("cart", JSON.stringify(newItems));
@@ -147,7 +152,7 @@ export default function Cart() {
   const total = subtotal + tipAmount;
 
   return (
-    <div className="min-h-screen p-4" dir = "rtl">
+    <div className="min-h-screen p-4" dir="rtl">
       <header className="mb-6">
         <Button
           variant="ghost"
@@ -167,10 +172,8 @@ export default function Cart() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4" >
-          {items.map((item, index) => {
-            console.log("Item at index", index, item); // Log the item data here
-            return (
+        <div className="space-y-4">
+          {items.map((item, index) => (
             <Card key={index}>
               <CardContent className="p-4">
                 <div className="flex items-center gap-4">
@@ -180,20 +183,26 @@ export default function Cart() {
                     className="w-20 h-20 object-cover rounded"
                   />
                   <div className="flex-1">
-                    <h3 className="font-medium">{item.name}</h3>                      
-                    {item.customizations.excludeIngredients.length > 0 ? (
-                    <p className="text-sm text-muted-foreground">
-                      ללא: {item.customizations.excludeIngredients.join(", ")}
-              
-                    </p>):<p></p>}
-                    {item.customizations.specialInstructions.length > 0 ? (
-                    <p className="text-sm text-muted-foreground">
-                      הערה: {item.customizations.specialInstructions}
-              
-                    </p>):<p></p>}
-
-
-                    
+                    <h3 className="font-medium">{item.name}</h3>
+                    {item.customizations?.excludeIngredients.length > 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        ללא: {item.customizations.excludeIngredients.join(", ")}
+                      </p>
+                    )}
+                    {item.customizations?.specialInstructions && (
+                      <p className="text-sm text-muted-foreground">
+                        הערה: {item.customizations.specialInstructions}
+                      </p>
+                    )}
+                    {item.customizations?.selectedCheckListItems &&
+                      Object.entries(item.customizations.selectedCheckListItems).map(([listName, selectedItems]) => (
+                        selectedItems.length > 0 && (
+                          <p key={listName} className="text-sm text-muted-foreground">
+                            {listName}: {selectedItems.join(", ")}
+                          </p>
+                        )
+                      ))
+                    }
                     <p className="text-sm text-muted-foreground">
                       ₪{Number(item.price).toFixed(2)} ליחידה
                     </p>
@@ -227,8 +236,7 @@ export default function Cart() {
                 </div>
               </CardContent>
             </Card>
-          );
-        })}
+          ))}
 
           <Card className="mt-6">
             <CardContent className="p-4">
