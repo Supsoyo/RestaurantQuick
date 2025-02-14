@@ -19,10 +19,10 @@ interface CartItem extends MenuItem {
       meatType?: string;
       bunType?: string;
       drink?: string;
-      toppings?: string[];
+      toppings: string[];
     };
-    excludeIngredients?: string[];
-    specialInstructions?: string;
+    excludeIngredients: string[];
+    specialInstructions: string;
     additionalPrice: number;
   };
 }
@@ -78,7 +78,7 @@ export default function Cart() {
           items: items.map((item) => ({
             menuItemId: item.id,
             quantity: item.quantity,
-            price: Number(item.price) + (item.customizations?.additionalPrice || 0), //Include customization price
+            price: Number(item.price) + (item.customizations?.additionalPrice || 0),
           })),
           tipAmount: tipAmount.toString(),
           paymentIntentId: paymentIntent.id,
@@ -87,6 +87,7 @@ export default function Cart() {
 
       const order = await response.json();
 
+      // For development, create a mock order ID
       order.id = Math.floor(Math.random() * 1000) + 1;
 
       // Create mock order
@@ -98,10 +99,12 @@ export default function Cart() {
         tipAmount,
         items: items.map((item) => ({
           id: Math.floor(Math.random() * 1000) + 1,
-          orderId: 0,
+          orderId: order.id,
           menuItemId: item.id,
           quantity: item.quantity,
-          price: Number(item.price) + (item.customizations?.additionalPrice || 0), //Include customization price
+          price: Number(item.price) + (item.customizations?.additionalPrice || 0),
+          name: item.name,
+          customizations: item.customizations,
         })),
         createdAt: new Date().toISOString(),
       };
@@ -118,7 +121,7 @@ export default function Cart() {
       toast({
         title: "ההזמנה בוצעה!",
         description: `הזמנה מספר ${order.id} התקבלה בהצלחה.`,
-        onClick: () => setLocation(`/order/${order.id}`), // Clicking toast navigates to order status
+        onClick: () => setLocation(`/order/${order.id}`),
       });
 
       // Redirect to menu
@@ -219,14 +222,14 @@ export default function Cart() {
                           <p>שתייה: {item.customizations.selectedOptions.drink}</p>
                         )}
                         {/* Show toppings */}
-                        {item.customizations.selectedOptions?.toppings.length > 0 && (
+                        {item.customizations.selectedOptions?.toppings?.length > 0 && (
                           <p>
                             תוספות:{" "}
                             {item.customizations.selectedOptions.toppings.join(", ")}
                           </p>
                         )}
                         {/* Show excluded ingredients */}
-                        {item.customizations.excludeIngredients.length > 0 && (
+                        {item.customizations.excludeIngredients?.length > 0 && (
                           <p>
                             ללא: {item.customizations.excludeIngredients.join(", ")}
                           </p>
@@ -243,9 +246,7 @@ export default function Cart() {
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() =>
-                          updateQuantity(index, item.quantity - 1)
-                        }
+                        onClick={() => updateQuantity(index, item.quantity - 1)}
                       >
                         {item.quantity === 1 ? (
                           <Trash2 className="h-4 w-4" />
@@ -257,9 +258,7 @@ export default function Cart() {
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() =>
-                          updateQuantity(index, item.quantity + 1)
-                        }
+                        onClick={() => updateQuantity(index, item.quantity + 1)}
                       >
                         <Plus className="h-4 w-4" />
                       </Button>
@@ -320,9 +319,7 @@ export default function Cart() {
                           min="0"
                           step="1"
                           value={customTipAmount}
-                          onChange={(e) =>
-                            setCustomTipAmount(e.target.value)
-                          }
+                          onChange={(e) => setCustomTipAmount(e.target.value)}
                           placeholder="0"
                           className="w-24"
                         />
