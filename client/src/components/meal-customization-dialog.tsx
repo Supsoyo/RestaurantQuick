@@ -18,7 +18,7 @@ interface MealCustomizationDialogProps {
   item: MenuItem;
   open: boolean;
   onClose: () => void;
-  onConfirm: (customizations: {
+  onConfirm: (customizations: { 
     excludeIngredients: string[];
     specialInstructions: string;
     selectedIngredients: Record<string, string[]>;
@@ -66,7 +66,15 @@ export default function MealCustomizationDialog({
       if (!ingredientDef) return prev;
 
       const currentQty = prev[checklistName][ingredient] || 0;
-      const newQty = Math.max(0, Math.min(ingredientDef.maxAmount, currentQty + delta));
+      const newQty = Math.max(0, currentQty + delta);
+
+      // Check if new quantity would exceed ingredient's max amount
+      if (newQty > ingredientDef.maxAmount) return prev;
+
+      // Check if new quantity would exceed checklist's total amount
+      const currentTotal = Object.values(prev[checklistName]).reduce((sum, qty) => sum + qty, 0);
+      const newTotal = currentTotal + delta;
+      if (newTotal > checklist.amount) return prev;
 
       return {
         ...prev,
@@ -215,7 +223,7 @@ export default function MealCustomizationDialog({
           {item.checkLists?.map((checklist, index) => (
             <div key={index} className="space-y-4">
               <Label>
-                {checklist.name}:
+                {checklist.name} (בחר עד {checklist.amount}):
               </Label>
               {checklist.possibleIngredients.map((ingredient) => (
                 <div key={ingredient.name} className="flex items-center justify-between">
@@ -238,13 +246,16 @@ export default function MealCustomizationDialog({
                         size="icon"
                         className="h-6 w-6"
                         onClick={() => updateIngredientQuantity(checklist.name, ingredient.name, 1)}
-                        disabled={ingredientQuantities[checklist.name][ingredient.name] >= ingredient.maxAmount}
+                        disabled={
+                          ingredientQuantities[checklist.name][ingredient.name] >= ingredient.maxAmount ||
+                          Object.values(ingredientQuantities[checklist.name]).reduce((sum, qty) => sum + qty, 0) >= checklist.amount
+                        }
                       >
                         <Plus className="h-3 w-3" />
                       </Button>
                     </div>
                     <Label className="mr-2">
-                      {ingredient.name} (מקסימום: {ingredient.maxAmount})
+                      {ingredient.name}
                     </Label>
                   </div>
                   <span className="text-sm text-muted-foreground">
@@ -252,6 +263,9 @@ export default function MealCustomizationDialog({
                   </span>
                 </div>
               ))}
+              <div className="text-sm text-muted-foreground">
+                נבחרו {Object.values(ingredientQuantities[checklist.name]).reduce((sum, qty) => sum + qty, 0)} מתוך {checklist.amount}
+              </div>
             </div>
           ))}
 
@@ -260,7 +274,7 @@ export default function MealCustomizationDialog({
               <Label>{radioList.name}:</Label>
               <RadioGroup
                 value={selectedRadioOptions[radioList.name]}
-                onValueChange={(value) =>
+                onValueChange={(value) => 
                   setSelectedRadioOptions(prev => ({
                     ...prev,
                     [radioList.name]: value
@@ -286,8 +300,8 @@ export default function MealCustomizationDialog({
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <Label>הערות מיוחדות:</Label>
-              <Button
-                variant="outline"
+              <Button 
+                variant="outline" 
                 size="sm"
                 onClick={addDrinkFirst}
                 type="button"
