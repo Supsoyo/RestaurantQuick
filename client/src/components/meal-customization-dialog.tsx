@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { type MenuItem } from "@shared/schema";
 import { Minus, Plus } from "lucide-react";
 
@@ -21,6 +22,7 @@ interface MealCustomizationDialogProps {
     excludeIngredients: string[];
     specialInstructions: string;
     selectedIngredients: Record<string, string[]>;
+    selectedRadioOptions: Record<string, string>;
     quantity: number;
   }) => void;
 }
@@ -38,6 +40,13 @@ export default function MealCustomizationDialog({
     const initial: Record<string, string[]> = {};
     item.checkLists?.forEach(checklist => {
       initial[checklist.name] = [];
+    });
+    return initial;
+  });
+  const [selectedRadioOptions, setSelectedRadioOptions] = useState<Record<string, string>>(() => {
+    const initial: Record<string, string> = {};
+    item.radioLists?.forEach(radioList => {
+      initial[radioList.name] = radioList.options[0] || ''; // Select first option by default
     });
     return initial;
   });
@@ -60,6 +69,7 @@ export default function MealCustomizationDialog({
       excludeIngredients,
       specialInstructions,
       selectedIngredients,
+      selectedRadioOptions,
       quantity,
     });
     // Reset state after confirming
@@ -70,6 +80,13 @@ export default function MealCustomizationDialog({
       const initial: Record<string, string[]> = {};
       item.checkLists?.forEach(checklist => {
         initial[checklist.name] = [];
+      });
+      return initial;
+    });
+    setSelectedRadioOptions(() => {
+      const initial: Record<string, string> = {};
+      item.radioLists?.forEach(radioList => {
+        initial[radioList.name] = radioList.options[0] || '';
       });
       return initial;
     });
@@ -157,6 +174,33 @@ export default function MealCustomizationDialog({
                   </Label>
                 </div>
               ))}
+            </div>
+          ))}
+
+          {item.radioLists?.map((radioList, index) => (
+            <div key={index} className="space-y-4">
+              <Label>{radioList.name}:</Label>
+              <RadioGroup
+                value={selectedRadioOptions[radioList.name]}
+                onValueChange={(value) => 
+                  setSelectedRadioOptions(prev => ({
+                    ...prev,
+                    [radioList.name]: value
+                  }))
+                }
+              >
+                {radioList.options.map((option) => (
+                  <div key={option} className="flex items-center space-x-2">
+                    <RadioGroupItem
+                      value={option}
+                      id={`${radioList.name}-${option}`}
+                    />
+                    <Label htmlFor={`${radioList.name}-${option}`} className="mr-2">
+                      {option}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
             </div>
           ))}
 

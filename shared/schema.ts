@@ -10,6 +10,7 @@ export const menuItems = pgTable("menu_items", {
   category: text("category").notNull(),
   imageUrl: text("image_url").notNull(),
   checkLists: jsonb("check_lists").notNull(), // Use jsonb to store structured data
+  radioLists: jsonb("radio_lists").notNull(), // Use jsonb to store structured data
   
   
   
@@ -42,6 +43,11 @@ const checklistSchema = z.object({
   name: z.string(), // Name of the checklist (e.g., "תוספות")
   possibleIngredients: z.array(z.string()).min(1), // List of ingredients for this checklist (e.g., ["עגבנייה", "בצל", "חסה"])
 });
+// Define the structure for the checklist objects
+const radiolistSchema = z.object({
+  name: z.string(), // Name of the checklist (e.g., "תוספות")
+  possibleIngredients: z.array(z.string()).min(1), // List of ingredients for this checklist (e.g., ["עגבנייה", "בצל", "חסה"])
+});
 
 
 export const insertMenuItemSchema = createInsertSchema(menuItems).pick({
@@ -55,6 +61,7 @@ export const insertMenuItemSchema = createInsertSchema(menuItems).pick({
 // Create a custom schema that includes `checkLists` as an array of checklist objects
 export const customInsertMenuItemSchema = insertMenuItemSchema.extend({
   checkLists: z.array(checklistSchema).min(1), // Custom validation for `checkLists` as an array of checklist objects
+  radioLists: z.array(radiolistSchema).min(1), // Custom validation for `checkLists` as an array of checklist objects
 });
 
 

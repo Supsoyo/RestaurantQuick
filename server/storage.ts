@@ -45,6 +45,10 @@ export class MemStorage implements IStorage {
           { possibleIngredients: ["עגבנייה", "בצל", "חסה", "רוטב הבית"], name: "תוספות" },
           { possibleIngredients: ["לחם", "פיתה", "באגט"], name: "סוג לחם" },
         ],
+        radioLists: [
+          { possibleIngredients: ["חיטה מלאה", "לבן", "שיפון"], name: "סוג לחם" },
+          { possibleIngredients: ["רגיל", "קלוי", "חם"], name: "אופן ההכנה" },
+        ],
       },
       {
         name: "המבורגר קלאסי ארוחה",
@@ -56,6 +60,10 @@ export class MemStorage implements IStorage {
           { possibleIngredients: ["עגבנייה", "בצל", "חסה", "לוטוס"], name: "תוספות" },
           { possibleIngredients: ["בקבוק מים", "שתייה מוגזת", "מיץ טבעי"], name: "משקה" },
         ],
+        radioLists: [
+          { possibleIngredients: ["בינוני", "גדול", "ענק"], name: "גודל המנה" },
+          { possibleIngredients: ["נא", "מדיום", "וול-דאן"], name: "דרגת עשייה" },
+        ],
       },
       {
         name: "המבורגר קלאסי",
@@ -63,7 +71,11 @@ export class MemStorage implements IStorage {
         price: "59.00",
         category: "ראשונות",
         imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd",
-        checkLists: [ ],
+        checkLists: [],
+        radioLists: [
+          { possibleIngredients: ["לחמנייה רגילה", "לחמנייה ללא גלוטן", "לחמנייה מתוקה"], name: "סוג לחמנייה" },
+
+        ],
       },
       {
         name: "סלט ירקות",
@@ -75,6 +87,11 @@ export class MemStorage implements IStorage {
           { possibleIngredients: ["חסה", "עגבנייה", "קולורבי", "גזר"], name: "תוספות ירק" },
           { possibleIngredients: ["שמן זית", "חומץ בלסמי", "לימון", "תיבול"], name: "רוטב" },
         ],
+        radioLists: [
+          { possibleIngredients: ["חסה בלבד", "מיקס ירוקים", "ללא חסה"], name: "סוג ירקות" },
+          { possibleIngredients: ["קוביות", "רצועות דקות", "פרוסות עבות"], name: "סגנון חיתוך" },
+          { possibleIngredients: ["רגיל", "מתובל", "פיקנטי"], name: "תיבול ההמבורגר" },
+        ],
       },
       {
         name: "פסטה ברוטב עגבניות",
@@ -83,8 +100,12 @@ export class MemStorage implements IStorage {
         category: "עיקריות",
         imageUrl: "https://images.unsplash.com/photo-1473093295043-cdd812d0e601",
         checkLists: [
-          { possibleIngredients: ["פסטה", "רוטב עגבניות", "שום", "חול", "בזיליקום"], name: "הוספות" },
+          { possibleIngredients: ["פסטה", "רוטב עגבניות", "שום", "בזיליקום"], name: "הוספות" },
           { possibleIngredients: ["גבינת פרמזן", "מוצרלה", "ריקוטה"], name: "הגשה" },
+        ],
+        radioLists: [
+          { possibleIngredients: ["פנה", "ספגטי", "פטוצ'יני"], name: "סוג פסטה" },
+          { possibleIngredients: ["שמנת", "רוטב עגבניות", "שמן זית"], name: "בסיס הרוטב" },
         ],
       },
       {
@@ -97,8 +118,13 @@ export class MemStorage implements IStorage {
           { possibleIngredients: ["קקאו", "מסקרפונה", "שוקולד מריר"], name: "עיטור" },
           { possibleIngredients: ["קפוצ'ינו", "קפה נמס", "מים"], name: "רוטב קפה" },
         ],
+        radioLists: [
+          { possibleIngredients: ["חם", "קר"], name: "טמפרטורת ההגשה" },
+          { possibleIngredients: ["רגיל", "ללא סוכר"], name: "מתיקות" },
+        ],
       },
     ];
+
 
 
     sampleMenuItems.forEach((item) => {
