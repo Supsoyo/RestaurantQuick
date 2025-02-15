@@ -42,13 +42,21 @@ export class MemStorage implements IStorage {
         category: "המיוחדות שלנו",
         imageUrl: "https://images.unsplash.com/photo-1470337458703-46ad1756a187",
         checkLists: [
-          { possibleIngredients: ["עגבנייה", "בצל", "חסה", "רוטב הבית"], name: "תוספות" },
-          { possibleIngredients: ["לחם", "פיתה", "באגט"], name: "סוג לחם" },
+          { name: "תוספות", amount: 3, possibleIngredients: [
+              { name: "אבוקדו", price: "2.00", maxAmount: 2 },
+              { name: "גבינת פטה", price: "3.00", maxAmount: 2 }
+            ]
+          },
+          { name: "רטבים נוספים", amount: 4, possibleIngredients: [
+              { name: "מיונז", price: "0.50", maxAmount: 1 },
+              { name: "צ'ילי מתוק", price: "0.50", maxAmount: 1 }
+            ]
+          }
         ],
         radioLists: [
-          { possibleIngredients: ["חיטה מלאה", "לבן", "שיפון"], name: "סוג לחם" },
-          { possibleIngredients: ["רגיל", "קלוי", "חם"], name: "אופן ההכנה" },
-        ],
+          { name: "סוג לחם", options: ["חיטה מלאה", "לבן", "שיפון"] },
+          { name: "אופן ההכנה", options: ["רגיל", "קלוי", "חם"] }
+        ]
       },
       {
         name: "המבורגר קלאסי ארוחה",
@@ -57,13 +65,21 @@ export class MemStorage implements IStorage {
         category: "ראשונות",
         imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd",
         checkLists: [
-          { possibleIngredients: ["עגבנייה", "בצל", "חסה", "לוטוס"], name: "תוספות" },
-          { possibleIngredients: ["בקבוק מים", "שתייה מוגזת", "מיץ טבעי"], name: "משקה" },
+          { name: "תוספות להמבורגר",amount: 4, possibleIngredients: [
+              { name: "בצל מקורמל", price: "1.00", maxAmount: 1 },
+              { name: "בייקון", price: "2.50", maxAmount: 1 }
+            ]
+          },
+          { name: "רטבים",amount: 7, possibleIngredients: [
+              { name: "ברביקיו", price: "0.50", maxAmount: 1 },
+              { name: "איולי", price: "0.50", maxAmount: 1 }
+            ]
+          }
         ],
         radioLists: [
-          { possibleIngredients: ["בינוני", "גדול", "ענק"], name: "גודל המנה" },
-          { possibleIngredients: ["נא", "מדיום", "וול-דאן"], name: "דרגת עשייה" },
-        ],
+          { name: "גודל המנה", options: ["בינוני", "גדול", "ענק"] },
+          { name: "דרגת עשייה", options: ["נא", "מדיום", "וול-דאן"] }
+        ]
       },
       {
         name: "המבורגר קלאסי",
@@ -73,7 +89,7 @@ export class MemStorage implements IStorage {
         imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd",
         checkLists: [],
         radioLists: [
-          { possibleIngredients: ["לחמנייה רגילה", "לחמנייה ללא גלוטן", "לחמנייה מתוקה"], name: "סוג לחמנייה" },
+          { options: ["לחמנייה רגילה", "לחמנייה ללא גלוטן", "לחמנייה מתוקה"], name: "סוג לחמנייה" },
 
         ],
       },
@@ -84,13 +100,51 @@ export class MemStorage implements IStorage {
         category: "ראשונות",
         imageUrl: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd",
         checkLists: [
-          { possibleIngredients: ["חסה", "עגבנייה", "קולורבי", "גזר"], name: "תוספות ירק" },
-          { possibleIngredients: ["שמן זית", "חומץ בלסמי", "לימון", "תיבול"], name: "רוטב" },
+          { amount: 3,
+            possibleIngredients: [
+              {
+                name: "קקאו",
+                price: "0.50",
+                maxAmount: 10,
+              },
+              {
+                name: "קקאו",
+                price: "0.50",
+                maxAmount: 10,
+              },
+              {
+                name: "קקאו",
+                price: "0.50",
+                maxAmount: 10,
+              },
+                                 ]
+           , name: "עיטור" 
+          },
+          { amount: 2,
+            possibleIngredients: [
+              {
+                name: "קקאו",
+                price: "0.50",
+                maxAmount: 10,
+              },
+              {
+                name: "קקאו",
+                price: "0.50",
+                maxAmount: 10,
+              },
+              {
+                name: "קקאו",
+                price: "0.50",
+                maxAmount: 10,
+              },
+                                 ]
+           , name: "עיטור" 
+          },
         ],
         radioLists: [
-          { possibleIngredients: ["חסה בלבד", "מיקס ירוקים", "ללא חסה"], name: "סוג ירקות" },
-          { possibleIngredients: ["קוביות", "רצועות דקות", "פרוסות עבות"], name: "סגנון חיתוך" },
-          { possibleIngredients: ["רגיל", "מתובל", "פיקנטי"], name: "תיבול ההמבורגר" },
+          { options: ["חסה בלבד", "מיקס ירוקים", "ללא חסה"], name: "סוג ירקות" },
+          { options: ["קוביות", "רצועות דקות", "פרוסות עבות"], name: "סגנון חיתוך" },
+          { options: ["רגיל", "מתובל", "פיקנטי"], name: "תיבול ההמבורגר" },
         ],
       },
       {
@@ -100,12 +154,50 @@ export class MemStorage implements IStorage {
         category: "עיקריות",
         imageUrl: "https://images.unsplash.com/photo-1473093295043-cdd812d0e601",
         checkLists: [
-          { possibleIngredients: ["פסטה", "רוטב עגבניות", "שום", "בזיליקום"], name: "הוספות" },
-          { possibleIngredients: ["גבינת פרמזן", "מוצרלה", "ריקוטה"], name: "הגשה" },
+          { amount: 4,
+            possibleIngredients: [
+              {
+                name: "קקאו",
+                price: "0.50",
+                maxAmount: 10,
+              },
+              {
+                name: "קקאו",
+                price: "0.50",
+                maxAmount: 10,
+              },
+              {
+                name: "קקאו",
+                price: "0.50",
+                maxAmount: 10,
+              },
+                                 ]
+           , name: "עיטור" 
+          },
+          { amount: 6,
+            possibleIngredients: [
+              {
+                name: "קקאו",
+                price: "0.50",
+                maxAmount: 10,
+              },
+              {
+                name: "קקאו",
+                price: "0.50",
+                maxAmount: 10,
+              },
+              {
+                name: "קקאו",
+                price: "0.50",
+                maxAmount: 10,
+              },
+                                 ]
+           , name: "עיטור" 
+          },
         ],
         radioLists: [
-          { possibleIngredients: ["פנה", "ספגטי", "פטוצ'יני"], name: "סוג פסטה" },
-          { possibleIngredients: ["שמנת", "רוטב עגבניות", "שמן זית"], name: "בסיס הרוטב" },
+          { options: ["פנה", "ספגטי", "פטוצ'יני"], name: "סוג פסטה" },
+          { options: ["שמנת", "רוטב עגבניות", "שמן זית"], name: "בסיס הרוטב" },
         ],
       },
       {
@@ -115,12 +207,50 @@ export class MemStorage implements IStorage {
         category: "קינוחים",
         imageUrl: "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9",
         checkLists: [
-          { possibleIngredients: ["קקאו", "מסקרפונה", "שוקולד מריר"], name: "עיטור" },
-          { possibleIngredients: ["קפוצ'ינו", "קפה נמס", "מים"], name: "רוטב קפה" },
+          { amount: 5,
+            possibleIngredients: [
+              {
+                name: "קקאו",
+                price: "0.50",
+                maxAmount: 10,
+              },
+              {
+                name: "קקאו",
+                price: "0.50",
+                maxAmount: 10,
+              },
+              {
+                name: "קקאו",
+                price: "0.50",
+                maxAmount: 10,
+              },
+                                 ]
+           , name: "עיטור" 
+          },
+          { amount: 2,
+            possibleIngredients: [
+              {
+                name: "קקאו",
+                price: "0.50",
+                maxAmount: 10,
+              },
+              {
+                name: "קקאו",
+                price: "0.50",
+                maxAmount: 10,
+              },
+              {
+                name: "קקאו",
+                price: "0.50",
+                maxAmount: 10,
+              },
+                                 ]
+           , name: "עיטור" 
+          },
         ],
         radioLists: [
-          { possibleIngredients: ["חם", "קר"], name: "טמפרטורת ההגשה" },
-          { possibleIngredients: ["רגיל", "ללא סוכר"], name: "מתיקות" },
+          { options: ["חם", "קר"], name: "טמפרטורת ההגשה" },
+          { options: ["רגיל", "ללא סוכר"], name: "מתיקות" },
         ],
       },
     ];

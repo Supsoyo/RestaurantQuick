@@ -12,7 +12,7 @@ interface MenuItemCardProps {
       excludeIngredients: string[];
       specialInstructions: string;
       selectedIngredients: Record<string, string[]>;
-      selectedRadioOptions: Record<string, string>;
+      selectedRadioOptions: Record<string, string[]>;
   }) => void;
 }
 
@@ -23,7 +23,7 @@ export default function MenuItemCard({ item, onAddToCart }: MenuItemCardProps) {
     excludeIngredients: string[];
     specialInstructions: string;
     selectedIngredients: Record<string, string[]>;
-    selectedRadioOptions: Record<string, string>;
+    selectedRadioOptions: Record<string, string[]>;
     quantity: number;
   }) => {
     onAddToCart(

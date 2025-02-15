@@ -39,14 +39,26 @@ export const orderItems = pgTable("order_items", {
 
 
 // Define the structure for the checklist objects
+const ingredientsSchema = z.object({
+  name: z.string(), // Name of the checklist (e.g., "תוספות")
+  price: z.string(),
+  maxAmount: z.number(),
+});
+// Define the structure for the checklist objects
 const checklistSchema = z.object({
   name: z.string(), // Name of the checklist (e.g., "תוספות")
-  possibleIngredients: z.array(z.string()).min(1), // List of ingredients for this checklist (e.g., ["עגבנייה", "בצל", "חסה"])
+  amount: z.number(),
+  // possibleIngredients: z.array(z.string()).min(1), // List of ingredients for this checklist (e.g., ["עגבנייה", "בצל", "חסה"])
 });
+// Create a custom schema that includes `checkLists` as an array of checklist objects
+export const customChecklistSchema = checklistSchema.extend({
+    possibleIngredients: z.array(ingredientsSchema).min(1), // Custom 
+});
+
 // Define the structure for the checklist objects
 const radiolistSchema = z.object({
   name: z.string(), // Name of the checklist (e.g., "תוספות")
-  possibleIngredients: z.array(z.string()).min(1), // List of ingredients for this checklist (e.g., ["עגבנייה", "בצל", "חסה"])
+    options: z.array(z.string()).min(1), // List of ingredients for this checklist (e.g., ["עגבנייה", "בצל", "חסה"])
 });
 
 
@@ -60,8 +72,9 @@ export const insertMenuItemSchema = createInsertSchema(menuItems).pick({
 
 // Create a custom schema that includes `checkLists` as an array of checklist objects
 export const customInsertMenuItemSchema = insertMenuItemSchema.extend({
-  checkLists: z.array(checklistSchema).min(1), // Custom validation for `checkLists` as an array of checklist objects
+  checkLists: z.array(customChecklistSchema).min(1), // Custom validation for `checkLists` as an array of checklist objects
   radioLists: z.array(radiolistSchema).min(1), // Custom validation for `checkLists` as an array of checklist objects
+  
 });
 
 

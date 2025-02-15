@@ -18,7 +18,7 @@ interface CartItem extends MenuItem {
     excludeIngredients: string[];
     specialInstructions: string;
     selectedIngredients: Record<string, string[]>;
-    selectedRadioOptions: Record<string, string>;
+    selectedRadioOptions: Record<string, string[]>;
   };
 }
 
@@ -199,7 +199,7 @@ export default function Cart() {
                     ))}
                     {Object.entries(item.customizations?.selectedRadioOptions || {}).map(([name, option]) => (
                       <p key={name} className="text-sm text-muted-foreground">
-                        {name}: {option}
+                        {name}: {option }
                       </p>
                     ))}
                     {item.customizations?.specialInstructions && (

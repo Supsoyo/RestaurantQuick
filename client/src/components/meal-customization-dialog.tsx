@@ -54,13 +54,37 @@ export default function MealCustomizationDialog({
   // Extract ingredients from the description
   const ingredients = item.description.split(',').map(i => i.trim());
 
-  const toggleIngredient = (checklistName: string, ingredient: string) => {
+  const toggleIngredient = (checklistName: string, ingredient: string, ingredientPrice: string, maxAmount: number) => {
     setSelectedIngredients(prev => {
       const current = prev[checklistName] || [];
-      const updated = current.includes(ingredient)
-        ? current.filter(i => i !== ingredient)
-        : [...current, ingredient];
-      return { ...prev, [checklistName]: updated };
+      const checklist = item.checkLists.find(c => c.name === checklistName);
+
+      if (!checklist) return prev;
+
+      // If ingredient is already selected, remove it
+      if (current.includes(ingredient)) {
+        return {
+          ...prev,
+          [checklistName]: current.filter(i => i !== ingredient)
+        };
+      }
+
+      // Check if adding this ingredient would exceed the maximum amount for this ingredient
+      const currentIngredientCount = current.filter(i => i === ingredient).length;
+      if (currentIngredientCount >= maxAmount) {
+        return prev;
+      }
+
+      // Check if adding this ingredient would exceed the checklist's total amount
+      if (current.length >= checklist.amount) {
+        return prev;
+      }
+
+      // Add the ingredient
+      return {
+        ...prev,
+        [checklistName]: [...current, ingredient]
+      };
     });
   };
 
@@ -100,13 +124,35 @@ export default function MealCustomizationDialog({
     setSpecialInstructions(newInstructions);
   };
 
-  const totalPrice = Number(item.price) * quantity;
+  // Calculate additional cost from selected ingredients
+  const calculateAdditionalCost = () => {
+    let additionalCost = 0;
+    Object.entries(selectedIngredients).forEach(([checklistName, ingredients]) => {
+      const checklist = item.checkLists.find(c => c.name === checklistName);
+      if (checklist) {
+        ingredients.forEach(ingredientName => {
+          const ingredient = checklist.possibleIngredients.find(i => i.name === ingredientName);
+          if (ingredient) {
+            additionalCost += Number(ingredient.price);
+          }
+        });
+      }
+    });
+    return additionalCost;
+  };
+
+  const additionalCost = calculateAdditionalCost();
+  const basePrice = Number(item.price);
+  const totalPrice = (basePrice + additionalCost) * quantity;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]" dir="rtl">
+      <DialogContent className="sm:max-w-[425px] max-h-[80vh] overflow-y-auto" dir="rtl">
         <DialogHeader>
-          <DialogTitle>התאמה אישית - {item.name}</DialogTitle>
+          <DialogTitle className="text-center">{item.name}</DialogTitle>
+          <div className="py-4">
+            <DialogTitle className="text-right">התאמה אישית:</DialogTitle>
+          </div>
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
@@ -132,6 +178,11 @@ export default function MealCustomizationDialog({
             </div>
             <div className="text-lg font-semibold">
               סה"כ: ₪{totalPrice.toFixed(2)}
+              {additionalCost > 0 && (
+                <span className="text-sm text-muted-foreground block">
+                  (כולל תוספות: ₪{additionalCost.toFixed(2)})
+                </span>
+              )}
             </div>
           </div>
 
@@ -161,19 +212,30 @@ export default function MealCustomizationDialog({
 
           {item.checkLists?.map((checklist, index) => (
             <div key={index} className="space-y-4">
-              <Label>{checklist.name}:</Label>
+              <Label>
+                {checklist.name} (בחר עד {checklist.amount}):
+              </Label>
               {checklist.possibleIngredients.map((ingredient) => (
-                <div key={ingredient} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`${checklist.name}-${ingredient}`}
-                    checked={selectedIngredients[checklist.name]?.includes(ingredient)}
-                    onCheckedChange={() => toggleIngredient(checklist.name, ingredient)}
-                  />
-                  <Label htmlFor={`${checklist.name}-${ingredient}`} className="mr-2">
-                    {ingredient}
-                  </Label>
+                <div key={ingredient.name} className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`${checklist.name}-${ingredient.name}`}
+                      checked={selectedIngredients[checklist.name]?.includes(ingredient.name)}
+                      onCheckedChange={() => toggleIngredient(checklist.name, ingredient.name, ingredient.price, ingredient.maxAmount)}
+                      className="w-7 h-7 rounded-full"
+                    />
+                    <Label htmlFor={`${checklist.name}-${ingredient.name}`} className="mr-2">
+                      {ingredient.name}
+                    </Label>
+                  </div>
+                  <span className="text-sm text-muted-foreground">
+                    ₪{Number(ingredient.price).toFixed(2)}
+                  </span>
                 </div>
               ))}
+              <div className="text-sm text-muted-foreground">
+                נבחרו {selectedIngredients[checklist.name]?.length || 0} מתוך {checklist.amount}
+              </div>
             </div>
           ))}
 
@@ -190,10 +252,11 @@ export default function MealCustomizationDialog({
                 }
               >
                 {radioList.options.map((option) => (
-                  <div key={option} className="flex items-center space-x-2">
+                  <div key={option} className="flex items-center space-x-2" dir="rtl">
                     <RadioGroupItem
                       value={option}
                       id={`${radioList.name}-${option}`}
+                      className="w-7 h-7 rounded-full"
                     />
                     <Label htmlFor={`${radioList.name}-${option}`} className="mr-2">
                       {option}
