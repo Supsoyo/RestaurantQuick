@@ -36,10 +36,13 @@ export default function MealCustomizationDialog({
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [excludeIngredients, setExcludeIngredients] = useState<string[]>([]);
   const [quantity, setQuantity] = useState(1);
-  const [selectedIngredients, setSelectedIngredients] = useState<Record<string, string[]>>(() => {
-    const initial: Record<string, string[]> = {};
+  const [ingredientQuantities, setIngredientQuantities] = useState<Record<string, Record<string, number>>>(() => {
+    const initial: Record<string, Record<string, number>> = {};
     item.checkLists?.forEach(checklist => {
-      initial[checklist.name] = [];
+      initial[checklist.name] = {};
+      checklist.possibleIngredients.forEach(ingredient => {
+        initial[checklist.name][ingredient.name] = 0;
+      });
     });
     return initial;
   });
@@ -54,41 +57,44 @@ export default function MealCustomizationDialog({
   // Extract ingredients from the description
   const ingredients = item.description.split(',').map(i => i.trim());
 
-  const toggleIngredient = (checklistName: string, ingredient: string, ingredientPrice: string, maxAmount: number) => {
-    setSelectedIngredients(prev => {
-      const current = prev[checklistName] || [];
+  const updateIngredientQuantity = (checklistName: string, ingredient: string, delta: number) => {
+    setIngredientQuantities(prev => {
       const checklist = item.checkLists.find(c => c.name === checklistName);
-
       if (!checklist) return prev;
 
-      // If ingredient is already selected, remove it
-      if (current.includes(ingredient)) {
-        return {
-          ...prev,
-          [checklistName]: current.filter(i => i !== ingredient)
-        };
-      }
+      const ingredientDef = checklist.possibleIngredients.find(i => i.name === ingredient);
+      if (!ingredientDef) return prev;
 
-      // Check if adding this ingredient would exceed the maximum amount for this ingredient
-      const currentIngredientCount = current.filter(i => i === ingredient).length;
-      if (currentIngredientCount >= maxAmount) {
-        return prev;
-      }
+      const currentQty = prev[checklistName][ingredient] || 0;
+      const newQty = Math.max(0, currentQty + delta);
 
-      // Check if adding this ingredient would exceed the checklist's total amount
-      if (current.length >= checklist.amount) {
-        return prev;
-      }
+      // Check if new quantity would exceed ingredient's max amount
+      if (newQty > ingredientDef.maxAmount) return prev;
 
-      // Add the ingredient
+      // Check if new quantity would exceed checklist's total amount
+      const currentTotal = Object.values(prev[checklistName]).reduce((sum, qty) => sum + qty, 0);
+      const newTotal = currentTotal + delta;
+      if (newTotal > checklist.amount) return prev;
+
       return {
         ...prev,
-        [checklistName]: [...current, ingredient]
+        [checklistName]: {
+          ...prev[checklistName],
+          [ingredient]: newQty
+        }
       };
     });
   };
 
   const handleConfirm = () => {
+    // Convert quantities to selected ingredients array format
+    const selectedIngredients: Record<string, string[]> = {};
+    Object.entries(ingredientQuantities).forEach(([checklistName, ingredients]) => {
+      selectedIngredients[checklistName] = Object.entries(ingredients).flatMap(
+        ([ingredient, qty]) => Array(qty).fill(ingredient)
+      );
+    });
+
     onConfirm({
       excludeIngredients,
       specialInstructions,
@@ -96,14 +102,18 @@ export default function MealCustomizationDialog({
       selectedRadioOptions,
       quantity,
     });
+
     // Reset state after confirming
     setQuantity(1);
     setExcludeIngredients([]);
     setSpecialInstructions("");
-    setSelectedIngredients(() => {
-      const initial: Record<string, string[]> = {};
+    setIngredientQuantities(() => {
+      const initial: Record<string, Record<string, number>> = {};
       item.checkLists?.forEach(checklist => {
-        initial[checklist.name] = [];
+        initial[checklist.name] = {};
+        checklist.possibleIngredients.forEach(ingredient => {
+          initial[checklist.name][ingredient.name] = 0;
+        });
       });
       return initial;
     });
@@ -127,13 +137,13 @@ export default function MealCustomizationDialog({
   // Calculate additional cost from selected ingredients
   const calculateAdditionalCost = () => {
     let additionalCost = 0;
-    Object.entries(selectedIngredients).forEach(([checklistName, ingredients]) => {
+    Object.entries(ingredientQuantities).forEach(([checklistName, ingredients]) => {
       const checklist = item.checkLists.find(c => c.name === checklistName);
       if (checklist) {
-        ingredients.forEach(ingredientName => {
+        Object.entries(ingredients).forEach(([ingredientName, qty]) => {
           const ingredient = checklist.possibleIngredients.find(i => i.name === ingredientName);
           if (ingredient) {
-            additionalCost += Number(ingredient.price);
+            additionalCost += Number(ingredient.price) * qty;
           }
         });
       }
@@ -217,14 +227,34 @@ export default function MealCustomizationDialog({
               </Label>
               {checklist.possibleIngredients.map((ingredient) => (
                 <div key={ingredient.name} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`${checklist.name}-${ingredient.name}`}
-                      checked={selectedIngredients[checklist.name]?.includes(ingredient.name)}
-                      onCheckedChange={() => toggleIngredient(checklist.name, ingredient.name, ingredient.price, ingredient.maxAmount)}
-                      className="w-7 h-7 rounded-full"
-                    />
-                    <Label htmlFor={`${checklist.name}-${ingredient.name}`} className="mr-2">
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => updateIngredientQuantity(checklist.name, ingredient.name, -1)}
+                        disabled={!ingredientQuantities[checklist.name][ingredient.name]}
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <span className="w-6 text-center">
+                        {ingredientQuantities[checklist.name][ingredient.name]}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => updateIngredientQuantity(checklist.name, ingredient.name, 1)}
+                        disabled={
+                          ingredientQuantities[checklist.name][ingredient.name] >= ingredient.maxAmount ||
+                          Object.values(ingredientQuantities[checklist.name]).reduce((sum, qty) => sum + qty, 0) >= checklist.amount
+                        }
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    <Label className="mr-2">
                       {ingredient.name}
                     </Label>
                   </div>
@@ -234,7 +264,7 @@ export default function MealCustomizationDialog({
                 </div>
               ))}
               <div className="text-sm text-muted-foreground">
-                נבחרו {selectedIngredients[checklist.name]?.length || 0} מתוך {checklist.amount}
+                נבחרו {Object.values(ingredientQuantities[checklist.name]).reduce((sum, qty) => sum + qty, 0)} מתוך {checklist.amount}
               </div>
             </div>
           ))}

@@ -108,12 +108,12 @@ export class MemStorage implements IStorage {
                 maxAmount: 10,
               },
               {
-                name: "קקאו",
+                name: "שגד",
                 price: "0.50",
                 maxAmount: 10,
               },
               {
-                name: "קקאו",
+                name: "כשעש",
                 price: "0.50",
                 maxAmount: 10,
               },
@@ -123,17 +123,17 @@ export class MemStorage implements IStorage {
           { amount: 2,
             possibleIngredients: [
               {
-                name: "קקאו",
+                name: "עששע",
                 price: "0.50",
                 maxAmount: 10,
               },
               {
-                name: "קקאו",
+                name: "שש׳׳",
                 price: "0.50",
                 maxAmount: 10,
               },
               {
-                name: "קקאו",
+                name: "רר/׳",
                 price: "0.50",
                 maxAmount: 10,
               },
