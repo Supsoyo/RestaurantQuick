@@ -18,7 +18,7 @@ interface CartItem extends MenuItem {
     excludeIngredients: string[];
     specialInstructions: string;
     selectedIngredients: Record<string, string[]>;
-    selectedRadioOptions: Record<string, string[]>;
+    selectedRadioOptions: Record<string, string>;
   };
 }
 
@@ -44,13 +44,37 @@ export default function Cart() {
     JSON.parse(localStorage.getItem("cart") || "[]")
   );
 
+  const calculateItemPrice = (item: CartItem) => {
+    let additionalCost = 0;
+    // Calculate additional cost from selected ingredients
+    Object.entries(item.customizations.selectedIngredients).forEach(([checklistName, selectedIngredients]) => {
+      const checklist = item.checkLists.find(c => c.name === checklistName);
+      if (checklist) {
+        // Count occurrences of each ingredient
+        const ingredientCounts: Record<string, number> = {};
+        selectedIngredients.forEach(ing => {
+          ingredientCounts[ing] = (ingredientCounts[ing] || 0) + 1;
+        });
+
+        // Calculate cost based on counts
+        Object.entries(ingredientCounts).forEach(([ingredientName, count]) => {
+          const ingredient = checklist.possibleIngredients.find(i => i.name === ingredientName);
+          if (ingredient) {
+            additionalCost += Number(ingredient.price) * count;
+          }
+        });
+      }
+    });
+    return (Number(item.price) + additionalCost) * item.quantity;
+  };
+
   const handlePaymentSuccess = async (paymentIntent: any) => {
     setIsPlacingOrder(true);
 
     try {
       // Calculate total with tip
       const subtotal = items.reduce(
-        (sum, item) => sum + Number(item.price) * item.quantity,
+        (sum, item) => sum + calculateItemPrice(item),
         0
       );
       const tipAmount = tipPercentage === "custom"
@@ -79,11 +103,9 @@ export default function Cart() {
 
       const order = await response.json();
 
-      order.id = Math.floor(Math.random() * 1000) + 1;
-
       // Create mock order
       const mockOrder = {
-        id: order.id,
+        id: order.id || Math.floor(Math.random() * 1000) + 1,
         tableId: Number(tableId),
         status: "pending",
         total,
@@ -109,8 +131,8 @@ export default function Cart() {
       // Show success message
       toast({
         title: "ההזמנה בוצעה!",
-        description: `הזמנה מספר ${order.id} התקבלה בהצלחה.`,
-        onClick: () => setLocation(`/order/${order.id}`), // Clicking toast navigates to order status
+        description: `הזמנה מספר ${mockOrder.id} התקבלה בהצלחה.`,
+        onClick: () => setLocation(`/order/${mockOrder.id}`),
       });
 
       // Redirect to menu
@@ -142,7 +164,7 @@ export default function Cart() {
   };
 
   const subtotal = items.reduce(
-    (sum, item) => sum + Number(item.price) * item.quantity,
+    (sum, item) => sum + calculateItemPrice(item),
     0
   );
 
@@ -190,16 +212,29 @@ export default function Cart() {
                         ללא: {item.customizations.excludeIngredients.join(", ")}
                       </p>
                     )}
-                    {Object.entries(item.customizations?.selectedIngredients || {}).map(([name, ingredients]) => (
-                      ingredients.length > 0 && (
+                    {Object.entries(item.customizations?.selectedIngredients || {}).map(([name, ingredients]) => {
+                      if (ingredients.length === 0) return null;
+
+                      // Count occurrences of each ingredient
+                      const ingredientCounts: Record<string, number> = {};
+                      ingredients.forEach(ing => {
+                        ingredientCounts[ing] = (ingredientCounts[ing] || 0) + 1;
+                      });
+
+                      // Format the display string
+                      const displayString = Object.entries(ingredientCounts)
+                        .map(([ing, count]) => `${ing} (${count})`)
+                        .join(", ");
+
+                      return (
                         <p key={name} className="text-sm text-muted-foreground">
-                          {name}: {ingredients.join(", ")}
+                          {name}: {displayString}
                         </p>
-                      )
-                    ))}
+                      );
+                    })}
                     {Object.entries(item.customizations?.selectedRadioOptions || {}).map(([name, option]) => (
                       <p key={name} className="text-sm text-muted-foreground">
-                        {name}: {option }
+                        {name}: {option}
                       </p>
                     ))}
                     {item.customizations?.specialInstructions && (
@@ -209,7 +244,7 @@ export default function Cart() {
                     )}
 
                     <p className="text-sm text-muted-foreground">
-                      ₪{Number(item.price).toFixed(2)} ליחידה
+                      ₪{calculateItemPrice(item) / item.quantity} ליחידה
                     </p>
                     <div className="flex items-center gap-2 mt-2">
                       <Button
@@ -235,7 +270,7 @@ export default function Cart() {
                   </div>
                   <div className="text-right">
                     <p className="font-medium">
-                      ₪{(Number(item.price) * item.quantity).toFixed(2)}
+                      ₪{calculateItemPrice(item).toFixed(2)}
                     </p>
                   </div>
                 </div>
