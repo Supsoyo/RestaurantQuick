@@ -46,6 +46,7 @@ export default function Cart() {
 
   const calculateItemPrice = (item: CartItem) => {
     let additionalCost = 0;
+
     // Calculate additional cost from selected ingredients
     Object.entries(item.customizations.selectedIngredients).forEach(([checklistName, selectedIngredients]) => {
       const checklist = item.checkLists.find(c => c.name === checklistName);
@@ -65,6 +66,18 @@ export default function Cart() {
         });
       }
     });
+
+    // Calculate additional cost from radio selections
+    Object.entries(item.customizations.selectedRadioOptions).forEach(([radioListName, selectedOption]) => {
+      const radioList = item.radioLists.find(r => r.name === radioListName);
+      if (radioList) {
+        const option = radioList.options.find(o => o.name === selectedOption);
+        if (option) {
+          additionalCost += Number(option.price);
+        }
+      }
+    });
+
     return (Number(item.price) + additionalCost) * item.quantity;
   };
 

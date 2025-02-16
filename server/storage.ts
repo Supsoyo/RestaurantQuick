@@ -42,217 +42,345 @@ export class MemStorage implements IStorage {
         category: "המיוחדות שלנו",
         imageUrl: "https://images.unsplash.com/photo-1470337458703-46ad1756a187",
         checkLists: [
-          { name: "תוספות", amount: 3, possibleIngredients: [
+          {
+            name: "תוספות",
+            amount: 3,  
+            possibleIngredients: [
               { name: "אבוקדו", price: "2.00", maxAmount: 2 },
-              { name: "גבינת פטה", price: "3.00", maxAmount: 2 }
+              { name: "גבינת פטה", price: "3.00", maxAmount: 2 },
+              { name: "פטריות מוקפצות", price: "2.50", maxAmount: 2 }
             ]
           },
-          { name: "רטבים נוספים", amount: 4, possibleIngredients: [
+          { 
+            name: "רטבים נוספים",
+            amount: 2, 
+            possibleIngredients: [
               { name: "מיונז", price: "0.50", maxAmount: 1 },
-              { name: "צ'ילי מתוק", price: "0.50", maxAmount: 1 }
+              { name: "צ'ילי מתוק", price: "0.50", maxAmount: 1 },
+              { name: "פסטו", price: "0.80", maxAmount: 1 }
             ]
           }
         ],
         radioLists: [
-          { name: "סוג לחם", options: ["חיטה מלאה", "לבן", "שיפון"] },
-          { name: "אופן ההכנה", options: ["רגיל", "קלוי", "חם"] }
+          { 
+            name: "סוג לחם",
+            options: [
+              { name: "חיטה מלאה", price: "0.00" },
+              { name: "לבן", price: "0.00" },
+              { name: "שיפון", price: "1.00" },
+              { name: "לחם כפרי", price: "1.50" }
+            ] 
+          },
+          { 
+            name: "רמת חריפות",
+            options: [
+              { name: "עדין", price: "0.00" },
+              { name: "בינוני", price: "0.00" },
+              { name: "חריף", price: "0.00" }
+            ] 
+          }
         ]
       },
       {
         name: "המבורגר קלאסי ארוחה",
         description: "נתחי בקר טרי, חסה, עגבניה ורוטב הבית",
-        price: "59.00",
-        category: "ראשונות",
+        price: "72.00",
+        category: "עיקריות",
         imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd",
         checkLists: [
-          { name: "תוספות להמבורגר",amount: 4, possibleIngredients: [
+          {
+            name: "תוספות להמבורגר",
+            amount: 2, 
+            possibleIngredients: [ 
               { name: "בצל מקורמל", price: "1.00", maxAmount: 1 },
-              { name: "בייקון", price: "2.50", maxAmount: 1 }
+              { name: "בייקון", price: "2.50", maxAmount: 1 },
+              { name: "גבינת צ׳דר", price: "2.00", maxAmount: 1 }
             ]
           },
-          { name: "רטבים",amount: 7, possibleIngredients: [
+          { 
+            name: "רטבים",
+            amount: 2, 
+            possibleIngredients: [
               { name: "ברביקיו", price: "0.50", maxAmount: 1 },
-              { name: "איולי", price: "0.50", maxAmount: 1 }
+              { name: "איולי", price: "0.50", maxAmount: 1 },
+              { name: "קטשופ חריף", price: "0.60", maxAmount: 1 }
             ]
           }
         ],
         radioLists: [
-          { name: "גודל המנה", options: ["בינוני", "גדול", "ענק"] },
-          { name: "דרגת עשייה", options: ["נא", "מדיום", "וול-דאן"] }
+          { 
+            name: "סוג לחם",
+            options: [
+              { name: "חיטה מלאה", price: "0.00" },
+              { name: "לבן", price: "0.00" },
+              { name: "שיפון", price: "1.00" },
+              { name: "לחמניית בריוש", price: "1.50" }
+            ] 
+          },
+          { 
+            name: "מידת עשייה",
+            options: [
+              { name: "נא", price: "0.00" },
+              { name: "מדיום", price: "0.00" },
+              { name: "עשוי היטב", price: "0.00" }
+            ] 
+          }
         ]
       },
       {
-        name: "המבורגר קלאסי",
-        description: "נתחי בקר טרי, חסה, עגבניה ורוטב הבית",
-        price: "59.00",
-        category: "ראשונות",
-        imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd",
-        checkLists: [],
-        radioLists: [
-          { options: ["לחמנייה רגילה", "לחמנייה ללא גלוטן", "לחמנייה מתוקה"], name: "סוג לחמנייה" },
-
-        ],
-      },
-      {
-        name: "סלט ירקות",
-        description: "ירקות טריים, שמן זית וחומץ בלסמי",
-        price: "45.00",
-        category: "ראשונות",
-        imageUrl: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd",
+        name: "סושי רול סלמון",
+        description: "רול במילוי סלמון, אבוקדו ומלפפון",
+        price: "48.00",
+        category: "מנות אסייתיות",
+        imageUrl: "https://images.unsplash.com/photo-1546069901-eacef0df6022",
         checkLists: [
-          { amount: 3,
+          {
+            name: "תוספות לרול",
+            amount: 2, 
             possibleIngredients: [
-              {
-                name: "קקאו",
-                price: "0.50",
-                maxAmount: 10,
-              },
-              {
-                name: "שגד",
-                price: "0.50",
-                maxAmount: 10,
-              },
-              {
-                name: "כשעש",
-                price: "0.50",
-                maxAmount: 10,
-              },
-                                 ]
-           , name: "עיטור" 
+              { name: "שומשום שחור", price: "0.50", maxAmount: 1 },
+              { name: "ג׳ינג׳ר כבוש", price: "0.50", maxAmount: 1 },
+              { name: "אבוקדו נוסף", price: "1.00", maxAmount: 1 }
+            ]
           },
-          { amount: 2,
+          { 
+            name: "רטבים לצד הסושי",
+            amount: 2, 
             possibleIngredients: [
-              {
-                name: "עששע",
-                price: "0.50",
-                maxAmount: 10,
-              },
-              {
-                name: "שש׳׳",
-                price: "0.50",
-                maxAmount: 10,
-              },
-              {
-                name: "רר/׳",
-                price: "0.50",
-                maxAmount: 10,
-              },
-                                 ]
-           , name: "עיטור" 
-          },
+              { name: "סויה", price: "0.00", maxAmount: 1 },
+              { name: "טריאקי", price: "0.50", maxAmount: 1 },
+              { name: "ווסאבי", price: "0.30", maxAmount: 1 }
+            ]
+          }
         ],
         radioLists: [
-          { options: ["חסה בלבד", "מיקס ירוקים", "ללא חסה"], name: "סוג ירקות" },
-          { options: ["קוביות", "רצועות דקות", "פרוסות עבות"], name: "סגנון חיתוך" },
-          { options: ["רגיל", "מתובל", "פיקנטי"], name: "תיבול ההמבורגר" },
-        ],
+          { 
+            name: "סוג רול",
+            options: [
+              { name: "מאקי", price: "0.00" },
+              { name: "אינסייד אאוט", price: "0.50" }
+            ] 
+          },
+          { 
+            name: "טמפרטורת הגשה",
+            options: [
+              { name: "קר", price: "0.00" },
+              { name: "בטמפורה", price: "1.50" }
+            ] 
+          }
+        ]
       },
-      {
-        name: "פסטה ברוטב עגבניות",
-        description: "פסטה טרייה ברוטב עגבניות ביתי",
-        price: "52.00",
-        category: "עיקריות",
-        imageUrl: "https://images.unsplash.com/photo-1473093295043-cdd812d0e601",
-        checkLists: [
-          { amount: 4,
-            possibleIngredients: [
-              {
-                name: "קקאו",
-                price: "0.50",
-                maxAmount: 10,
-              },
-              {
-                name: "קקאו",
-                price: "0.50",
-                maxAmount: 10,
-              },
-              {
-                name: "קקאו",
-                price: "0.50",
-                maxAmount: 10,
-              },
-                                 ]
-           , name: "עיטור" 
-          },
-          { amount: 6,
-            possibleIngredients: [
-              {
-                name: "קקאו",
-                price: "0.50",
-                maxAmount: 10,
-              },
-              {
-                name: "קקאו",
-                price: "0.50",
-                maxAmount: 10,
-              },
-              {
-                name: "קקאו",
-                price: "0.50",
-                maxAmount: 10,
-              },
-                                 ]
-           , name: "עיטור" 
-          },
-        ],
-        radioLists: [
-          { options: ["פנה", "ספגטי", "פטוצ'יני"], name: "סוג פסטה" },
-          { options: ["שמנת", "רוטב עגבניות", "שמן זית"], name: "בסיס הרוטב" },
-        ],
-      },
-      {
-        name: "טירמיסו",
-        description: "קינוח איטלקי קלאסי",
-        price: "32.00",
-        category: "קינוחים",
-        imageUrl: "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9",
-        checkLists: [
-          { amount: 5,
-            possibleIngredients: [
-              {
-                name: "קקאו",
-                price: "0.50",
-                maxAmount: 10,
-              },
-              {
-                name: "קקאו",
-                price: "0.50",
-                maxAmount: 10,
-              },
-              {
-                name: "קקאו",
-                price: "0.50",
-                maxAmount: 10,
-              },
-                                 ]
-           , name: "עיטור" 
-          },
-          { amount: 2,
-            possibleIngredients: [
-              {
-                name: "קקאו",
-                price: "0.50",
-                maxAmount: 10,
-              },
-              {
-                name: "קקאו",
-                price: "0.50",
-                maxAmount: 10,
-              },
-              {
-                name: "קקאו",
-                price: "0.50",
-                maxAmount: 10,
-              },
-                                 ]
-           , name: "עיטור" 
-          },
-        ],
-        radioLists: [
-          { options: ["חם", "קר"], name: "טמפרטורת ההגשה" },
-          { options: ["רגיל", "ללא סוכר"], name: "מתיקות" },
-        ],
-      },
+      
+        {
+          name: "המבורגר קלאסי",
+          description: "נתחי בקר טרי, חסה, עגבניה ורוטב הבית",
+          price: "59.00",
+          category: "עיקריות",
+          imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd",
+          checkLists: [
+            {
+              name: "תוספות להמבורגר",
+              amount: 2,
+              possibleIngredients: [
+                { name: "בצל מקורמל", price: "1.00", maxAmount: 1 },
+                { name: "גבינת צ'דר", price: "2.00", maxAmount: 1 },
+                { name: "בייקון", price: "2.50", maxAmount: 1 }
+              ]
+            }
+          ],
+          radioLists: [
+            { 
+              name: "סוג לחם",
+              options: [
+                { name: "לחמניית בריוש", price: "1.50" },
+                { name: "חיטה מלאה", price: "0.00" },
+                { name: "שיפון", price: "1.00" }
+              ] 
+            },
+            {
+              name: "מידת עשייה",
+              options: [
+                { name: "נא", price: "0.00" },
+                { name: "מדיום", price: "0.00" },
+                { name: "עשוי היטב", price: "0.00" }
+              ]
+            }
+          ]
+        },
+        {
+          name: "סלט קפרזה",
+          description: "עגבניות שרי, מוצרלה טרייה, בזיליקום ושמן זית",
+          price: "42.00",
+          category: "ראשונות",
+          imageUrl: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38",
+          checkLists: [
+            {
+              name: "תוספות לסלט",
+              amount: 2,
+              possibleIngredients: [
+                { name: "אגוזי מלך", price: "0.70", maxAmount: 2 },
+                { name: "קרוטונים", price: "0.50", maxAmount: 2 },
+                { name: "זיתי קלמטה", price: "0.60", maxAmount: 2 }
+              ]
+            }
+          ],
+          radioLists: [
+            {
+              name: "תיבול מועדף",
+              options: [
+                { name: "שמן זית ולימון", price: "0.00" },
+                { name: "בלסמי מצומצם", price: "0.50" },
+                { name: "שמן זית ופסטו", price: "0.70" }
+              ]
+            },
+            {
+              name: "תוספת לחם לצד הסלט",
+              options: [
+                { name: "פוקצ'ה טרייה", price: "5.00" },
+                { name: "לחם כפרי", price: "3.00" },
+                { name: "קרקר כוסמין", price: "2.50" }
+              ]
+            }
+          ]
+        },
+        {
+          name: "פיצה מרגריטה",
+          description: "בצק דק עם רוטב עגבניות וגבינת מוצרלה",
+          price: "58.00",
+          category: "עיקריות",
+          imageUrl: "https://images.unsplash.com/photo-1594007654729-407eedc4be80",
+          checkLists: [
+            {
+              name: "תוספות לפיצה",
+              amount: 3,
+              possibleIngredients: [
+                { name: "פטריות שמפיניון", price: "0.80", maxAmount: 2 },
+                { name: "זיתים שחורים", price: "0.60", maxAmount: 2 },
+                { name: "תירס", price: "0.50", maxAmount: 2 },
+                { name: "ארטישוק", price: "1.20", maxAmount: 2 }
+              ]
+            }
+          ],
+          radioLists: [
+            {
+              name: "סוג בצק",
+              options: [
+                { name: "בצק דק קלאסי", price: "0.00" },
+                { name: "בצק עבה בסגנון אמריקאי", price: "1.50" },
+                { name: "בצק כוסמין", price: "2.00" }
+              ]
+            },
+            {
+              name: "תוספת גבינה",
+              options: [
+                { name: "פרמזן", price: "1.00" },
+                { name: "גבינת מוצרלה נוספת", price: "2.00" },
+                { name: "גבינה טבעונית", price: "2.50" }
+              ]
+            }
+          ]
+        },
+      
+        {
+          name: "מרק עדשים",
+          description: "מרק עדשים כתומות עם ירקות שורש",
+          price: "28.00",
+          category: "ראשונות",
+          imageUrl: "https://images.unsplash.com/photo-1607478900762-9b5c27581fda",
+          checkLists: [
+            {
+              name: "תוספות",
+              amount: 2,
+              possibleIngredients: [
+                { name: "שמן זית", price: "0.30", maxAmount: 3 },
+                { name: "קרוטונים", price: "0.40", maxAmount: 3 },
+                { name: "עשבי תיבול טריים", price: "0.20", maxAmount: 2 }
+              ]
+            }
+          ],
+          radioLists: [
+            {
+              name: "דרגת חריפות",
+              options: [
+                { name: "ללא חריפות", price: "0.00" },
+                { name: "פיקנטי קל", price: "0.20" },
+                { name: "חריף", price: "0.40" }
+              ]
+            }
+          ]
+        },
+        {
+          name: "סלמון אפוי",
+          description: "פילה סלמון בתנור עם רוטב לימון ושום",
+          price: "89.00",
+          category: "עיקריות",
+          imageUrl: "https://images.unsplash.com/photo-1544025162-d76694265947",
+          checkLists: [
+            {
+              name: "תוספות ירק",
+              amount: 2,
+              possibleIngredients: [
+                { name: "אספרגוס", price: "1.20", maxAmount: 5 },
+                { name: "תרד מוקפץ", price: "1.00", maxAmount: 5 },
+                { name: "ברוקולי מאודה", price: "1.30", maxAmount: 5 }
+              ]
+            }
+          ],
+          radioLists: [
+            {
+              name: "דרגת עשייה",
+              options: [
+                { name: "נא קל", price: "0.00" },
+                { name: "מדיום", price: "0.00" },
+                { name: "עשוי היטב", price: "0.00" }
+              ]
+            },
+            {
+              name: "רטבים נלווים",
+              options: [
+                { name: "רוטב שמנת לימון", price: "1.50" },
+                { name: "רוטב חמאת שום", price: "1.20" },
+                { name: "רוטב טריאקי", price: "1.00" }
+              ]
+            }
+          ]
+        },
+        {
+          name: "שוקולד פאדג׳",
+          description: "עוגת פאדג' חמה עם כדור גלידת וניל",
+          price: "39.00",
+          category: "קינוחים",
+          imageUrl: "https://images.unsplash.com/photo-1599785209707-19d68f9c4dd5",
+          checkLists: [
+            {
+              name: "תוספות",
+              amount: 2,
+              possibleIngredients: [
+                { name: "אגוזי לוז", price: "0.60", maxAmount: 5 },
+                { name: "רוטב קרמל", price: "0.50", maxAmount: 3 },
+                { name: "שברי שוקולד לבן", price: "0.70", maxAmount: 3 }
+              ]
+            }
+          ],
+          radioLists: [
+            {
+              name: "סוג גלידה",
+              options: [
+                { name: "וניל קלאסי", price: "0.00" },
+                { name: "שוקולד מריר", price: "0.50" },
+                { name: "גלידת אגוזים", price: "0.70" }
+              ]
+            },
+            {
+              name: "תוספת קצפת",
+              options: [
+                { name: "ללא", price: "0.00" },
+                { name: "קצפת רגילה", price: "0.30" },
+                { name: "קצפת בטעם קרמל", price: "0.50" }
+              ]
+            }
+          ]
+        }
     ];
 
 

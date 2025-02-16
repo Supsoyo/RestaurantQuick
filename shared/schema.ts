@@ -44,6 +44,12 @@ const ingredientsSchema = z.object({
   price: z.string(),
   maxAmount: z.number(),
 });
+
+// Define the structure for the checklist objects  
+const optIngredientsSchema = z.object({
+  name: z.string(), // Name of the checklist (e.g., "תוספות")
+  price: z.string(),
+});
 // Define the structure for the checklist objects
 const checklistSchema = z.object({
   name: z.string(), // Name of the checklist (e.g., "תוספות")
@@ -58,7 +64,7 @@ export const customChecklistSchema = checklistSchema.extend({
 // Define the structure for the checklist objects
 const radiolistSchema = z.object({
   name: z.string(), // Name of the checklist (e.g., "תוספות")
-    options: z.array(z.string()).min(1), // List of ingredients for this checklist (e.g., ["עגבנייה", "בצל", "חסה"])
+    options: z.array(optIngredientsSchema).min(1), // List of ingredients for this checklist (e.g., ["עגבנייה", "בצל", "חסה"])
 });
 
 

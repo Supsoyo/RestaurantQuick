@@ -49,7 +49,8 @@ export default function MealCustomizationDialog({
   const [selectedRadioOptions, setSelectedRadioOptions] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {};
     item.radioLists?.forEach(radioList => {
-      initial[radioList.name] = radioList.options[0] || ''; // Select first option by default
+      // Select first option by default
+      initial[radioList.name] = radioList.options[0].name || '';
     });
     return initial;
   });
@@ -120,7 +121,7 @@ export default function MealCustomizationDialog({
     setSelectedRadioOptions(() => {
       const initial: Record<string, string> = {};
       item.radioLists?.forEach(radioList => {
-        initial[radioList.name] = radioList.options[0] || '';
+        initial[radioList.name] = radioList.options[0].name || '';
       });
       return initial;
     });
@@ -134,9 +135,11 @@ export default function MealCustomizationDialog({
     setSpecialInstructions(newInstructions);
   };
 
-  // Calculate additional cost from selected ingredients
+  // Calculate additional cost from selected ingredients and radio options
   const calculateAdditionalCost = () => {
     let additionalCost = 0;
+
+    // Calculate cost from checklist selections
     Object.entries(ingredientQuantities).forEach(([checklistName, ingredients]) => {
       const checklist = item.checkLists.find(c => c.name === checklistName);
       if (checklist) {
@@ -148,6 +151,18 @@ export default function MealCustomizationDialog({
         });
       }
     });
+
+    // Calculate cost from radio selections
+    Object.entries(selectedRadioOptions).forEach(([radioListName, selectedOption]) => {
+      const radioList = item.radioLists.find(r => r.name === radioListName);
+      if (radioList) {
+        const option = radioList.options.find(o => o.name === selectedOption);
+        if (option) {
+          additionalCost += Number(option.price);
+        }
+      }
+    });
+
     return additionalCost;
   };
 
@@ -282,15 +297,20 @@ export default function MealCustomizationDialog({
                 }
               >
                 {radioList.options.map((option) => (
-                  <div key={option} className="flex items-center space-x-2" dir="rtl">
-                    <RadioGroupItem
-                      value={option}
-                      id={`${radioList.name}-${option}`}
-                      className="w-7 h-7 rounded-full"
-                    />
-                    <Label htmlFor={`${radioList.name}-${option}`} className="mr-2">
-                      {option}
-                    </Label>
+                  <div key={option.name} className="flex items-center justify-between" dir="rtl">
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem
+                        value={option.name}
+                        id={`${radioList.name}-${option.name}`}
+                        className="w-7 h-7 rounded-full"
+                      />
+                      <Label htmlFor={`${radioList.name}-${option.name}`} className="mr-2">
+                        {option.name}
+                      </Label>
+                    </div>
+                    <span className="text-sm text-muted-foreground">
+                      {Number(option.price) > 0 && `₪${Number(option.price).toFixed(2)}`}
+                    </span>
                   </div>
                 ))}
               </RadioGroup>
