@@ -110,6 +110,7 @@ export const customInsertMenuItemSchema = insertMenuItemSchema.extend({
 export const personalOrderSchema = z.object({
   tableId: z.number().min(1),
   customerId: z.string().min(1),
+  createdAt: z.date().optional(), // Add this line
   items: z.array(z.object({
     menuItemId: z.number().min(1),
     quantity: z.number().min(1),

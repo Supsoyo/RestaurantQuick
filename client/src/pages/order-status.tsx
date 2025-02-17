@@ -61,9 +61,12 @@ export default function OrderStatus() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load order from localStorage
+    // Load order from localStorage object.keys(personalOrders)
     const personalOrders = JSON.parse(localStorage.getItem("personalOrders") || "{}");
     const currentOrder = personalOrders[orderId];
+    console.log("currentOrder", currentOrder)
+    console.log("orderid", orderId)
+    console.log("personalOrders.length", personalOrders.length)
 
     // Load menu items for reference
     const storedMenuItems = JSON.parse(localStorage.getItem("menuItems") || "[]");
