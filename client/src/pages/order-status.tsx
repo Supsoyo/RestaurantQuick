@@ -4,32 +4,75 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { CheckCircle2, Clock, ChefHat, TruckIcon, ArrowLeft } from "lucide-react";
-import { type Order, type OrderItem } from "@shared/schema";
+import { type MenuItem } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 
-interface OrderWithItems extends Order {
+interface OrderItem {
+  menuItemId: number;
+  quantity: number;
+  price: number;
+  checkLists?: {
+    name: string;
+    amount: number;
+    possibleIngredients: Array<{
+      name: string;
+      price: string;
+      maxAmount: number;
+    }>;
+  }[];
+  radioLists?: {
+    name: string;
+    options: Array<{
+      name: string;
+      price: string;
+    }>;
+  }[];
+  customizations: {
+    excludeIngredients: string[];
+    specialInstructions: string;
+    selectedIngredients: Record<string, string[]>;
+    selectedRadioOptions: Record<string, string>;
+  };
+}
+
+interface PersonalOrder {
+  tableId: number;
+  customerId: string;
   items: OrderItem[];
+  status?: 'pending' | 'preparing' | 'ready' | 'completed';
+  total?: number;
+  tipAmount?: number;
+  createdAt?: string;
 }
 
 const STATUS_STEPS = {
-  pending: { progress: 25, icon: Clock, label: "Order Received", description: "Your order has been received and is being reviewed" },
-  preparing: { progress: 50, icon: ChefHat, label: "Preparing", description: "Our chefs are preparing your delicious meal" },
-  ready: { progress: 75, icon: TruckIcon, label: "Ready for Pickup", description: "Your order is ready to be served" },
-  completed: { progress: 100, icon: CheckCircle2, label: "Completed", description: "Enjoy your meal!" },
+  pending: { progress: 25, icon: Clock, label: "הזמנה התקבלה", description: "ההזמנה שלך התקבלה ונמצאת בבדיקה" },
+  preparing: { progress: 50, icon: ChefHat, label: "בהכנה", description: "השפים שלנו מכינים את הארוחה הטעימה שלך" },
+  ready: { progress: 75, icon: TruckIcon, label: "מוכן להגשה", description: "ההזמנה שלך מוכנה להגשה" },
+  completed: { progress: 100, icon: CheckCircle2, label: "הושלם", description: "בתיאבון!" },
 };
 
-// Mock status progression for development
 const STATUS_SEQUENCE = ["pending", "preparing", "ready", "completed"] as const;
 
 export default function OrderStatus() {
   const { orderId } = useParams();
-  const [order, setOrder] = useState<OrderWithItems | null>(null);
+  const [order, setOrder] = useState<PersonalOrder | null>(null);
+  const [menuItems, setMenuItems] = useState<Record<number, MenuItem>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Load order from localStorage
-    const orders = JSON.parse(localStorage.getItem("orders") || "{}");
-    const currentOrder = orders[orderId];
+    const personalOrders = JSON.parse(localStorage.getItem("personalOrders") || "{}");
+    const currentOrder = personalOrders[orderId];
+
+    // Load menu items for reference
+    const storedMenuItems = JSON.parse(localStorage.getItem("menuItems") || "[]");
+    const menuItemsMap = storedMenuItems.reduce((acc: Record<number, MenuItem>, item: MenuItem) => {
+      acc[item.id] = item;
+      return acc;
+    }, {});
+
+    setMenuItems(menuItemsMap);
     setOrder(currentOrder);
     setLoading(false);
 
@@ -38,7 +81,7 @@ export default function OrderStatus() {
       setOrder(prevOrder => {
         if (!prevOrder) return null;
 
-        const currentStatusIndex = STATUS_SEQUENCE.indexOf(prevOrder.status as typeof STATUS_SEQUENCE[number]);
+        const currentStatusIndex = STATUS_SEQUENCE.indexOf(prevOrder.status as typeof STATUS_SEQUENCE[number] || 'pending');
         const nextStatusIndex = (currentStatusIndex + 1) % STATUS_SEQUENCE.length;
 
         const updatedOrder = {
@@ -47,9 +90,9 @@ export default function OrderStatus() {
         };
 
         // Update in localStorage
-        const orders = JSON.parse(localStorage.getItem("orders") || "{}");
+        const orders = JSON.parse(localStorage.getItem("personalOrders") || "{}");
         orders[orderId] = updatedOrder;
-        localStorage.setItem("orders", JSON.stringify(orders));
+        localStorage.setItem("personalOrders", JSON.stringify(orders));
 
         return updatedOrder;
       });
@@ -57,6 +100,45 @@ export default function OrderStatus() {
 
     return () => clearInterval(interval);
   }, [orderId]);
+
+  const calculateItemPrice = (item: OrderItem) => {
+    let additionalCost = 0;
+    const menuItem = menuItems[item.menuItemId];
+    if (!menuItem) return 0;
+
+    // Calculate additional cost from selected ingredients
+    Object.entries(item.customizations.selectedIngredients).forEach(([checklistName, selectedIngredients]) => {
+      const checklist = menuItem.checkLists.find(c => c.name === checklistName);
+      if (checklist) {
+        // Count occurrences of each ingredient
+        const ingredientCounts: Record<string, number> = {};
+        selectedIngredients.forEach(ing => {
+          ingredientCounts[ing] = (ingredientCounts[ing] || 0) + 1;
+        });
+
+        // Calculate cost based on counts
+        Object.entries(ingredientCounts).forEach(([ingredientName, count]) => {
+          const ingredient = checklist.possibleIngredients.find(i => i.name === ingredientName);
+          if (ingredient) {
+            additionalCost += Number(ingredient.price) * count;
+          }
+        });
+      }
+    });
+
+    // Calculate additional cost from radio selections
+    Object.entries(item.customizations.selectedRadioOptions).forEach(([radioListName, selectedOption]) => {
+      const radioList = menuItem.radioLists.find(r => r.name === radioListName);
+      if (radioList) {
+        const option = radioList.options.find(o => o.name === selectedOption);
+        if (option) {
+          additionalCost += Number(option.price);
+        }
+      }
+    });
+
+    return (Number(menuItem.price) + additionalCost) * item.quantity;
+  };
 
   if (loading) {
     return (
@@ -79,18 +161,18 @@ export default function OrderStatus() {
       <div className="p-4">
         <Card>
           <CardContent className="p-6 text-center text-muted-foreground">
-            Order not found
+            הזמנה לא נמצאה
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  const status = STATUS_STEPS[order.status as keyof typeof STATUS_STEPS];
+  const status = STATUS_STEPS[order.status || 'pending'];
   const StatusIcon = status.icon;
 
   return (
-    <div className="min-h-screen p-4 max-w-md mx-auto">
+    <div className="min-h-screen p-4 max-w-md mx-auto" dir="rtl">
       <header className="mb-6">
         <Button
           variant="ghost"
@@ -100,7 +182,7 @@ export default function OrderStatus() {
           <ArrowLeft className="h-4 w-4 mr-2" />
           חזרה
         </Button>
-        <h1 className="text-2xl font-bold">הזמנה #{order.id}</h1>
+        <h1 className="text-2xl font-bold">הזמנה שולחן {order.tableId}</h1>
       </header>
 
       <Card className="mb-6">
@@ -133,36 +215,90 @@ export default function OrderStatus() {
 
       <Card>
         <CardContent className="p-6">
-          <h2 className="font-medium mb-4">סיכום הזמנה</h2>
+          <h2 className="font-medium mb-4">פרטי ההזמנה</h2>
           <div className="space-y-4">
-            {order.items.map((item) => (
-              <div key={item.id} className="flex justify-between items-center">
-                <div>
-                  <p className="font-medium">{item.quantity}x Menu Item</p>
-                  <p className="text-sm text-muted-foreground">
-                    ${Number(item.price).toFixed(2)} each
-                  </p>
+            {order.items.map((item, index) => {
+              const menuItem = menuItems[item.menuItemId];
+              if (!menuItem) return null;
+
+              return (
+                <div key={index} className="flex items-start gap-4">
+                  <img
+                    src={menuItem.imageUrl}
+                    alt={menuItem.name}
+                    className="w-20 h-20 object-cover rounded"
+                  />
+                  <div className="flex-1">
+                    <h3 className="font-medium">{menuItem.name}</h3>
+                    {item.customizations?.excludeIngredients.length > 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        ללא: {item.customizations.excludeIngredients.join(", ")}
+                      </p>
+                    )}
+                    {Object.entries(item.customizations?.selectedIngredients || {}).map(([name, ingredients]) => {
+                      if (ingredients.length === 0) return null;
+
+                      // Count occurrences of each ingredient
+                      const ingredientCounts: Record<string, number> = {};
+                      ingredients.forEach(ing => {
+                        ingredientCounts[ing] = (ingredientCounts[ing] || 0) + 1;
+                      });
+
+                      // Format the display string
+                      const displayString = Object.entries(ingredientCounts)
+                        .map(([ing, count]) => `${ing} (${count})`)
+                        .join(", ");
+
+                      return (
+                        <p key={name} className="text-sm text-muted-foreground">
+                          {name}: {displayString}
+                        </p>
+                      );
+                    })}
+                    {Object.entries(item.customizations?.selectedRadioOptions || {}).map(([name, option]) => (
+                      <p key={name} className="text-sm text-muted-foreground">
+                        {name}: {option}
+                      </p>
+                    ))}
+                    {item.customizations?.specialInstructions && (
+                      <p className="text-sm text-muted-foreground">
+                        הערה: {item.customizations.specialInstructions}
+                      </p>
+                    )}
+                    <p className="text-sm text-muted-foreground">
+                      כמות: {item.quantity}
+                    </p>
+                    <p className="font-medium mt-1">
+                      ₪{calculateItemPrice(item).toFixed(2)}
+                    </p>
+                  </div>
                 </div>
-                <p className="font-medium">
-                  ${(Number(item.price) * item.quantity).toFixed(2)}
-                </p>
-              </div>
-            ))}
+              );
+            })}
+
             <Separator />
+
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <span>סכום ביניים</span>
-                <span>${(Number(order.total) - Number(order.tipAmount || 0)).toFixed(2)}</span>
+                <span>
+                  ₪{order.items.reduce((sum, item) => sum + calculateItemPrice(item), 0).toFixed(2)}
+                </span>
               </div>
               {order.tipAmount && Number(order.tipAmount) > 0 && (
                 <div className="flex justify-between items-center">
                   <span>טיפ</span>
-                  <span>${Number(order.tipAmount).toFixed(2)}</span>
+                  <span>₪{Number(order.tipAmount).toFixed(2)}</span>
                 </div>
               )}
               <div className="flex justify-between items-center font-medium">
                 <span>סה״כ</span>
-                <span>${Number(order.total).toFixed(2)}</span>
+                <span>
+                  ₪{(
+                    order.items.reduce((sum, item) => sum + calculateItemPrice(item), 0) +
+                    (Number(order.tipAmount) || 0)
+                  ).toFixed(2)}
+                </span>
               </div>
             </div>
           </div>
