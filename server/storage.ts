@@ -1,4 +1,4 @@
-import { MenuItem, Order, OrderItem, Table, PersonalOrder, type InsertMenuItem, type InsertOrder ,type InsertPersonalOrder} from "@shared/schema";
+import { MenuItem, Order, OrderItem, Table, type InsertMenuItem, type InsertOrder } from "@shared/schema";
 
 export interface IStorage {
   // Menu Items
@@ -21,77 +21,21 @@ export class MemStorage implements IStorage {
   private orders: Map<number, Order>;
   private orderItems: Map<number, OrderItem[]>;
   private currentIds: { [key: string]: number };
-  private personalOrders: Map<number, PersonalOrder>;
-
 
   constructor() {
     this.menuItems = new Map();
     this.tables = new Map();
     this.orders = new Map();
     this.orderItems = new Map();
-    this.currentIds = { menuItem: 1, table: 1, order: 1, orderItem: 1 , personalOrder: 1 };
-    this.personalOrders = new Map();
+    this.currentIds = { menuItem: 1, table: 1, order: 1, orderItem: 1 };
 
     // Initialize with sample data
     this.initializeSampleData();
   }
 
   private initializeSampleData() {
-    const samplePersonalOrder: InsertPersonalOrder = {
-      tableId: 12,
-      customerId: "customer123",
-      createdAt: new Date(),
-      items: [
-        {
-          menuItemId: 1,
-          quantity: 2,
-          price: 59.00,
-          customizations: {
-            excludeIngredients: ["בצל"],
-            specialInstructions: "drink first",
-            selectedIngredients: {
-              "תוספות": ["אבוקדו", "אבוקדו", "גבינת פטה"],
-              "רטבים נוספים": ["מיונז", "פסטו"]
-            },
-            selectedRadioOptions: {
-              "סוג לחם": "חיטה מלאה",
-              "רמת חריפות": "בינוני"
-            }
-          }
-        },
-        {
-          menuItemId: 2,
-          quantity: 1,
-          price: 72.00,
-          customizations: {
-            excludeIngredients: [],
-            specialInstructions: "extra spicy please",
-            selectedIngredients: {
-              "תוספות להמבורגר": ["בצל מקורמל", "גבינת צ׳דר"],
-              "רטבים": ["ברביקיו", "קטשופ חריף"]
-            },
-            selectedRadioOptions: {
-              "סוג לחם": "לחמניית בריוש",
-              "מידת עשייה": "מדיום"
-            }
-          }
-        }
-      ]
-    };
-
-    // Initialize the sample personal order
-    const personalOrderId = this.currentIds.personalOrder++;
-    this.personalOrders.set(personalOrderId, {
-      ...samplePersonalOrder,
-      id: personalOrderId,
-      status: 'preparing',
-      total: 190.00,
-      tipAmount: 20.00
-    });
-
     const sampleMenuItems: InsertMenuItem[] = [
       {
-        id: 1,
         name: "כריך המיוחד",
         description: "עגבניה, בצל, חסה, רוטב הבית",
         price: "59.00",
@@ -138,7 +82,6 @@ export class MemStorage implements IStorage {
         ]
       },
       {
-        id: 2,
         name: "המבורגר קלאסי ארוחה",
         description: "נתחי בקר טרי, חסה, עגבניה ורוטב הבית",
         price: "72.00",
@@ -185,7 +128,6 @@ export class MemStorage implements IStorage {
         ]
       },
       {
-        id: 3,
         name: "סושי רול סלמון",
         description: "רול במילוי סלמון, אבוקדו ומלפפון",
         price: "48.00",
@@ -230,7 +172,6 @@ export class MemStorage implements IStorage {
       },
       
         {
-          id: 4,
           name: "המבורגר קלאסי",
           description: "נתחי בקר טרי, חסה, עגבניה ורוטב הבית",
           price: "59.00",
@@ -267,7 +208,6 @@ export class MemStorage implements IStorage {
           ]
         },
         {
-          id: 5,
           name: "סלט קפרזה",
           description: "עגבניות שרי, מוצרלה טרייה, בזיליקום ושמן זית",
           price: "42.00",
@@ -304,7 +244,6 @@ export class MemStorage implements IStorage {
           ]
         },
         {
-          id: 6,
           name: "פיצה מרגריטה",
           description: "בצק דק עם רוטב עגבניות וגבינת מוצרלה",
           price: "58.00",
@@ -341,9 +280,8 @@ export class MemStorage implements IStorage {
             }
           ]
         },
-        
+      
         {
-          id: 7,
           name: "מרק עדשים",
           description: "מרק עדשים כתומות עם ירקות שורש",
           price: "28.00",
@@ -372,7 +310,6 @@ export class MemStorage implements IStorage {
           ]
         },
         {
-          id: 8,
           name: "סלמון אפוי",
           description: "פילה סלמון בתנור עם רוטב לימון ושום",
           price: "89.00",
@@ -409,7 +346,6 @@ export class MemStorage implements IStorage {
           ]
         },
         {
-          id: 9,
           name: "שוקולד פאדג׳",
           description: "עוגת פאדג' חמה עם כדור גלידת וניל",
           price: "39.00",
@@ -447,33 +383,18 @@ export class MemStorage implements IStorage {
         }
     ];
 
+
+
     sampleMenuItems.forEach((item) => {
       const id = this.currentIds.menuItem++;
       this.menuItems.set(id, { ...item, id });
     });
-
 
     // Create some sample tables
     for (let i = 1; i <= 10; i++) {
       const id = this.currentIds.table++;
       this.tables.set(id, { id, number: i });
     }
-  }
-  async createPersonalOrder(order: InsertPersonalOrder): Promise<PersonalOrder> {
-    const id = this.currentIds.personalOrder++; // Increment order ID
-    const personalOrder: PersonalOrder = {
-      id,
-      tableId: order.tableId,
-      customerId: order.customerId,
-      items: order.items,
-      createdAt: new Date(),
-    };
-
-    this.personalOrders.set(id, personalOrder);
-    return personalOrder;
-  }
-  async getPersonalOrders(id: number): Promise<PersonalOrder | undefined> {
-    return this.personalOrders.get(id);
   }
 
   async getMenuItems(): Promise<MenuItem[]> {
