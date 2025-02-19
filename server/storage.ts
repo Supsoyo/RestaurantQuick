@@ -34,6 +34,8 @@ export class MemStorage implements IStorage {
   }
 
   private initializeSampleData() {
+
+    
     const sampleMenuItems: InsertMenuItem[] = [
       {
         name: "כריך המיוחד",
@@ -452,3 +454,22 @@ export class MemStorage implements IStorage {
 }
 
 export const storage = new MemStorage();
+export const samplePersonalOrders = [
+  {
+    orderNumber: "001",
+    price: "25.50",
+    nameOfCustomer: "John Doe",
+    cartItems: [
+      { itemId: "burger", quantity: 2, specialInstructions: "No pickles" },
+      { itemId: "fries", quantity: 1 }
+    ]
+  },
+  {
+    orderNumber: "002",
+    price: "15.00",
+    nameOfCustomer: "Jane Smith",
+    cartItems: [
+      { itemId: "salad", quantity: 1, specialInstructions: "Dressing on side" }
+    ]
+  }
+];

@@ -87,7 +87,7 @@ export default function Menu() {
                 ההזמנות שלי
               </Button>
             </Link>
-            <Link href={`/cart/${tableId}`}>
+            <Link href={`/personal/${tableId}`}>
               <Button variant="outline" size="icon">
                 <ShoppingCart className="h-5 w-5" />
               </Button>

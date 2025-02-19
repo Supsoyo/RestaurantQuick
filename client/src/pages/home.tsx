@@ -63,7 +63,12 @@ export default function Home() {
       <div className="space-y-8 ">
               <Button 
                 className="w-52 rounded-full" 
-                onClick={() => setLocation(`/menu/12`)} 
+                onClick={() => {
+                  if (name.trim()) {
+                    localStorage.setItem("customerName", name.trim());
+                  }
+                  setLocation(`/menu/12`);
+                }}
                 disabled={!name.trim()}
               >
                 התחל הזמנה

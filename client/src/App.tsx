@@ -8,6 +8,8 @@ import Menu from "@/pages/menu";
 import Cart from "@/pages/cart";
 import Orders from "@/pages/orders";
 import OrderStatus from "@/pages/order-status";
+import personal from "@/pages/personal";
+import table from "@/pages/table";
 
 function Router() {
   return (
@@ -17,6 +19,8 @@ function Router() {
       <Route path="/cart/:tableId" component={Cart} />
       <Route path="/orders/:tableId" component={Orders} />
       <Route path="/order/:orderId" component={OrderStatus} />
+      <Route path="/personal/:orderId" component={personal} />
+      <Route path="/tableorder/:orderId" component={table} />
       <Route component={NotFound} />
     </Switch>
   );

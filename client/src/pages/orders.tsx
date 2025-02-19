@@ -4,6 +4,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Clock, ChefHat, TruckIcon, CheckCircle2 } from "lucide-react";
 import { type Order } from "@shared/schema";
+import { Separator } from "@/components/ui/separator";
+
+interface TableOrder {
+  tableId: string;
+  orderees: string[];
+  personalOrders: Array<{
+    ordererName: string;
+    cartItems: any[];
+    price: string;
+  }>;
+}
 
 const STATUS_ICONS = {
   pending: { icon: Clock, label: "ממתין" },
@@ -15,20 +26,62 @@ const STATUS_ICONS = {
 export default function Orders() {
   const { tableId } = useParams();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [tableOrders, setTableOrders] = useState<TableOrder[]>([]);
 
   useEffect(() => {
-    // Load orders from localStorage
+    // Load individual orders from localStorage
     const storedOrders = JSON.parse(localStorage.getItem("orders") || "{}");
-    const tableOrders = Object.values(storedOrders)
+    const individualOrders = Object.values(storedOrders)
       .filter((order: Order) => order.tableId === Number(tableId))
       .sort((a: Order, b: Order) => 
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
-    setOrders(tableOrders);
+    setOrders(individualOrders);
+
+    // Load table orders from localStorage
+    const storedTableOrders = JSON.parse(localStorage.getItem("tableOrders") || "[]");
+    setTableOrders(storedTableOrders);
   }, [tableId]);
 
+  const calculateItemPrice = (item: any) => {
+    let additionalCost = 0;
+
+    // Calculate additional cost from selected ingredients
+    Object.entries(item.customizations.selectedIngredients).forEach(([checklistName, selectedIngredients]: [string, any[]]) => {
+      const checklist = item.checkLists.find((c: any) => c.name === checklistName);
+      if (checklist) {
+        // Count occurrences of each ingredient
+        const ingredientCounts: Record<string, number> = {};
+        selectedIngredients.forEach(ing => {
+          ingredientCounts[ing] = (ingredientCounts[ing] || 0) + 1;
+        });
+
+        // Calculate cost based on counts
+        Object.entries(ingredientCounts).forEach(([ingredientName, count]) => {
+          const ingredient = checklist.possibleIngredients.find((i: any) => i.name === ingredientName);
+          if (ingredient) {
+            additionalCost += Number(ingredient.price) * count;
+          }
+        });
+      }
+    });
+
+    // Calculate additional cost from radio selections
+    Object.entries(item.customizations.selectedRadioOptions).forEach(([radioListName, selectedOption]) => {
+      const radioList = item.radioLists.find((r: any) => r.name === radioListName);
+      if (radioList) {
+        const option = radioList.options.find((o: any) => o.name === selectedOption);
+        if (option) {
+          additionalCost += Number(option.price);
+        }
+      }
+    });
+
+    return (Number(item.price) + additionalCost) * item.quantity;
+  };
+
   return (
-    <div className="min-h-screen p-4">
+    <div className="min-h-screen p-4" dir="rtl">
       <header className="mb-6">
         <Button
           variant="ghost"
@@ -41,45 +94,130 @@ export default function Orders() {
         <h1 className="text-2xl font-bold">ההזמנות שלי</h1>
       </header>
 
-      <div className="space-y-4">
-        {orders.length === 0 ? (
-          <Card>
-            <CardContent className="p-6 text-center text-muted-foreground">
-              אין הזמנות
-            </CardContent>
-          </Card>
-        ) : (
-          orders.map((order) => {
-            const StatusIcon = STATUS_ICONS[order.status as keyof typeof STATUS_ICONS].icon;
-            return (
-              <Link key={order.id} href={`/order/${order.id}`}>
-                <Card className="cursor-pointer hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-medium">הזמנה #{order.id}</h3>
-                          <span className="text-sm text-muted-foreground">
-                            {new Date(order.createdAt).toLocaleTimeString()}
-                          </span>
+      <div className="space-y-8">
+        {/* Table Orders Section */}
+        <section>
+          <h2 className="text-xl font-semibold mb-4">הזמנות שולחן</h2>
+          {tableOrders.length === 0 ? (
+            <Card>
+              <CardContent className="p-6 text-center text-muted-foreground">
+                אין הזמנות שולחן
+              </CardContent>
+            </Card>
+          ) : (
+            tableOrders.map((tableOrder, index) => (
+              <Card key={index} className="mb-4">
+                <CardContent className="p-4">
+                  <div className="space-y-4">
+                    <h3 className="font-medium">שולחן מספר {tableOrder.tableId}</h3>
+                    <div className="text-sm text-muted-foreground">
+                      סועדים: {tableOrder.orderees.join(", ")}
+                    </div>
+
+                    {tableOrder.personalOrders.map((personalOrder, orderIndex) => (
+                      <div key={orderIndex} className="bg-muted/50 rounded-lg p-4 mt-4">
+                        <h4 className="font-medium mb-2">{personalOrder.ordererName}</h4>
+                        {personalOrder.cartItems.map((item, itemIndex) => (
+                          <div key={itemIndex} className="mb-2">
+                            <div className="flex items-center justify-between">
+                              <span>{item.name} x{item.quantity}</span>
+                              <span>₪{calculateItemPrice(item).toFixed(2)}</span>
+                            </div>
+                            {item.customizations?.excludeIngredients.length > 0 && (
+                              <p className="text-sm text-muted-foreground">
+                                ללא: {item.customizations.excludeIngredients.join(", ")}
+                              </p>
+                            )}
+                            {/* Display selected ingredients with quantities */}
+                            {Object.entries(item.customizations?.selectedIngredients || {}).map(([name, ingredients]: [string, any[]]) => {
+                              if (ingredients.length === 0) return null;
+                              const ingredientCounts: Record<string, number> = {};
+                              ingredients.forEach(ing => {
+                                ingredientCounts[ing] = (ingredientCounts[ing] || 0) + 1;
+                              });
+                              const displayString = Object.entries(ingredientCounts)
+                                .map(([ing, count]) => `${ing} (${count})`)
+                                .join(", ");
+                              return (
+                                <p key={name} className="text-sm text-muted-foreground">
+                                  {name}: {displayString}
+                                </p>
+                              );
+                            })}
+                            {/* Display radio selections */}
+                            {Object.entries(item.customizations?.selectedRadioOptions || {}).map(([name, option]) => (
+                              <p key={name} className="text-sm text-muted-foreground">
+                                {name}: {option}
+                              </p>
+                            ))}
+                          </div>
+                        ))}
+                        <Separator className="my-2" />
+                        <div className="flex justify-between font-medium">
+                          <span>סה״כ</span>
+                          <span>₪{personalOrder.price}</span>
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          סה״כ: ₪{Number(order.total).toFixed(2)}
-                        </p>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm">
-                          {STATUS_ICONS[order.status as keyof typeof STATUS_ICONS].label}
+                    ))}
+                    <div className="mt-4 pt-4 border-t">
+                      <div className="flex justify-between font-bold">
+                        <span>סה״כ שולחן</span>
+                        <span>
+                          ₪{tableOrder.personalOrders.reduce((sum, order) => 
+                            sum + Number(order.price), 0
+                          ).toFixed(2)}
                         </span>
-                        <StatusIcon className="h-5 w-5 text-primary" />
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            );
-          })
-        )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </section>
+
+        {/* Individual Orders Section */}
+        <section>
+          <h2 className="text-xl font-semibold mb-4">הזמנות אישיות</h2>
+          {orders.length === 0 ? (
+            <Card>
+              <CardContent className="p-6 text-center text-muted-foreground">
+                אין הזמנות אישיות
+              </CardContent>
+            </Card>
+          ) : (
+            orders.map((order) => {
+              const StatusIcon = STATUS_ICONS[order.status as keyof typeof STATUS_ICONS].icon;
+              return (
+                <Link key={order.id} href={`/order/${order.id}`}>
+                  <Card className="cursor-pointer hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-medium">הזמנה #{order.id}</h3>
+                            <span className="text-sm text-muted-foreground">
+                              {new Date(order.createdAt).toLocaleTimeString()}
+                            </span>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            סה״כ: ₪{Number(order.total).toFixed(2)}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm">
+                            {STATUS_ICONS[order.status as keyof typeof STATUS_ICONS].label}
+                          </span>
+                          <StatusIcon className="h-5 w-5 text-primary" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })
+          )}
+        </section>
       </div>
     </div>
   );
