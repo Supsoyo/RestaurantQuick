@@ -77,6 +77,17 @@ export default function OrderStatus() {
   if (!order) {
     return (
       <div className="p-4">
+      
+          <Button
+            variant="ghost"
+            className="mb-4"
+            onClick={() => window.history.back()}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            חזרה
+          </Button>
+          
+        
         <Card>
           <CardContent className="p-6 text-center text-muted-foreground">
             Order not found
@@ -102,6 +113,14 @@ export default function OrderStatus() {
         </Button>
         <h1 className="text-2xl font-bold">הזמנה #{order.id}</h1>
       </header>
+      <Button
+        variant="ghost"
+        className="mb-4"
+        onClick={() => setLocation(`/menu/${tableId}`)}
+      >
+        <ArrowLeft className="h-4 w-4 mr-2" />
+        חזרה לתפריט
+      </Button>
 
       <Card className="mb-6">
         <CardContent className="p-6">

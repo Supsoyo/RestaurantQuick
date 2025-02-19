@@ -27,21 +27,55 @@ export default function Orders() {
   const { tableId } = useParams();
   const [orders, setOrders] = useState<Order[]>([]);
   const [tableOrders, setTableOrders] = useState<TableOrder[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load individual orders from localStorage
-    const storedOrders = JSON.parse(localStorage.getItem("orders") || "{}");
-    const individualOrders = Object.values(storedOrders)
-      .filter((order: Order) => order.tableId === Number(tableId))
-      .sort((a: Order, b: Order) => 
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
-    setOrders(individualOrders);
+    try {
+      // Load individual orders from localStorage
+      const storedOrders = JSON.parse(localStorage.getItem("orders") || "{}");
+      const individualOrders = Object.values(storedOrders)
+        .filter((order: Order) => order.tableId === Number(tableId))
+        .sort((a: Order, b: Order) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      setOrders(individualOrders);
 
-    // Load table orders from localStorage
-    const storedTableOrders = JSON.parse(localStorage.getItem("tableOrders") || "[]");
-    setTableOrders(storedTableOrders);
+      // Load table orders from localStorage
+      const storedTableOrders = JSON.parse(localStorage.getItem("tableOrders") || "[]");
+      setTableOrders(storedTableOrders);
+    } catch (error) {
+      console.error("Error loading orders:", error);
+    } finally {
+      setLoading(false);
+    }
   }, [tableId]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen p-4" dir="rtl">
+        <header className="mb-6">
+          <Button
+            variant="ghost"
+            className="mb-4"
+            onClick={() => window.history.back()}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            חזרה
+          </Button>
+          <h1 className="text-2xl font-bold">ההזמנות שלי</h1>
+        </header>
+        <Card>
+          <CardContent className="p-6">
+            <div className="animate-pulse space-y-4">
+              <div className="h-4 bg-muted rounded w-1/4"></div>
+              <div className="h-2 bg-muted rounded"></div>
+              <div className="h-2 bg-muted rounded w-3/4"></div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const calculateItemPrice = (item: any) => {
     let additionalCost = 0;
@@ -120,41 +154,55 @@ export default function Orders() {
                         {personalOrder.cartItems.map((item, itemIndex) => (
                           <div key={itemIndex} className="mb-2">
                             <div className="flex items-center justify-between">
-                              <span>{item.name} x{item.quantity}</span>
-                              <span>₪{calculateItemPrice(item).toFixed(2)}</span>
+                              <div className="flex items-center gap-2">
+                                <img
+                                  src={item.imageUrl}
+                                  alt={item.name}
+                                  className="w-12 h-12 object-cover rounded"
+                                />
+                                <span>{item.name} x{item.quantity}</span>
+                              </div>
+                              <span className="font-medium">₪{calculateItemPrice(item).toFixed(2)}</span>
                             </div>
-                            {item.customizations?.excludeIngredients.length > 0 && (
-                              <p className="text-sm text-muted-foreground">
-                                ללא: {item.customizations.excludeIngredients.join(", ")}
-                              </p>
-                            )}
-                            {/* Display selected ingredients with quantities */}
-                            {Object.entries(item.customizations?.selectedIngredients || {}).map(([name, ingredients]: [string, any[]]) => {
-                              if (ingredients.length === 0) return null;
-                              const ingredientCounts: Record<string, number> = {};
-                              ingredients.forEach(ing => {
-                                ingredientCounts[ing] = (ingredientCounts[ing] || 0) + 1;
-                              });
-                              const displayString = Object.entries(ingredientCounts)
-                                .map(([ing, count]) => `${ing} (${count})`)
-                                .join(", ");
-                              return (
-                                <p key={name} className="text-sm text-muted-foreground">
-                                  {name}: {displayString}
+                            <div className="ml-14">
+                              {item.customizations?.excludeIngredients.length > 0 && (
+                                <p className="text-sm text-muted-foreground">
+                                  ללא: {item.customizations.excludeIngredients.join(", ")}
                                 </p>
-                              );
-                            })}
-                            {/* Display radio selections */}
-                            {Object.entries(item.customizations?.selectedRadioOptions || {}).map(([name, option]) => (
-                              <p key={name} className="text-sm text-muted-foreground">
-                                {name}: {option}
-                              </p>
-                            ))}
+                              )}
+                              {/* Display selected ingredients with quantities */}
+                              {Object.entries(item.customizations?.selectedIngredients || {}).map(([name, ingredients]: [string, any[]]) => {
+                                if (ingredients.length === 0) return null;
+                                const ingredientCounts: Record<string, number> = {};
+                                ingredients.forEach(ing => {
+                                  ingredientCounts[ing] = (ingredientCounts[ing] || 0) + 1;
+                                });
+                                const displayString = Object.entries(ingredientCounts)
+                                  .map(([ing, count]) => `${ing} (${count})`)
+                                  .join(", ");
+                                return (
+                                  <p key={name} className="text-sm text-muted-foreground">
+                                    {name}: {displayString}
+                                  </p>
+                                );
+                              })}
+                              {/* Display radio selections */}
+                              {Object.entries(item.customizations?.selectedRadioOptions || {}).map(([name, option]) => (
+                                <p key={name} className="text-sm text-muted-foreground">
+                                  {name}: {option}
+                                </p>
+                              ))}
+                              {item.customizations?.specialInstructions && (
+                                <p className="text-sm text-muted-foreground">
+                                  הערות: {item.customizations.specialInstructions}
+                                </p>
+                              )}
+                            </div>
                           </div>
                         ))}
                         <Separator className="my-2" />
                         <div className="flex justify-between font-medium">
-                          <span>סה״כ</span>
+                          <span>סה״כ להזמנה</span>
                           <span>₪{personalOrder.price}</span>
                         </div>
                       </div>
@@ -163,7 +211,7 @@ export default function Orders() {
                       <div className="flex justify-between font-bold">
                         <span>סה״כ שולחן</span>
                         <span>
-                          ₪{tableOrder.personalOrders.reduce((sum, order) => 
+                          ₪{tableOrder.personalOrders.reduce((sum, order) =>
                             sum + Number(order.price), 0
                           ).toFixed(2)}
                         </span>

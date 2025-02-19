@@ -146,7 +146,8 @@ export default function Cart() {
   }
     console.log("hiiiii!!!: ",tableOrder.toString())
 
-    tableOrders.push(tableOrder);
+    // tableOrders.push(tableOrder);
+    // tableOrders.push(tableOrder);
     
 
 
