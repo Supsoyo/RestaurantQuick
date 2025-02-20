@@ -197,6 +197,103 @@ export default function Cart() {
 
   const total = subtotal + tipAmount;
 
+
+  const handleDoOrder = async () => {
+    setIsPlacingOrder(true);
+      const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+
+      // localStorage.removeItem("cart");
+    //   const tableOrder = JSON.parse(localStorage.getItem("tableorder") || "[]");
+
+    // const customerName = localStorage.getItem("customerName") || "Guest"
+
+    // // Create a personal order object
+    // const personalOrder = {
+    //   ordererName: customerName,
+    //   cartItems: cart,
+    // };
+
+    //     tableOrder.push(personalOrder);
+    //   localStorage.setItem("tableOrder", JSON.stringify(tableOrder));
+
+
+    //   console.log("Order created:", tableOrder)
+    // console.log("🔍 Current Cart Before Adding Item:", JSON.stringify(tableOrder, null, 2));
+      // localStorage.removeItem("cart");
+
+
+
+
+
+      const tableOrders = JSON.parse(localStorage.getItem("tableOrders") || "[]");
+      // const tableOrders = [
+      //   {
+      //     tableId: "someTableId",  // Replace with actual tableId
+      //     orderees: [],  // Add the first customer
+      //     personalOrders: [],
+      //   }
+      // ];
+
+    const customerName = localStorage.getItem("customerName") || "Guest"
+
+    // Create a personal order object
+    const personalOrder = {
+      ordererName: customerName,
+      cartItems: cart,
+      price: subtotal.toFixed(2),
+    };
+
+    const tableOrder = {}
+
+    console.log("tableOrders.length: ",tableOrders.length)
+
+
+    if (tableOrders.length === 0) {
+      // If no order exists for this table, create a new tableOrder 
+      const tableOrder = {
+        tableId: "someTableId",  // Replace with actual tableId
+        orderees: [customerName],  // Add the first customer
+        personalOrders: [personalOrder],
+      };
+      console.log("🔍 tableOrder:", JSON.stringify(tableOrder, null, 2));
+      tableOrders.push(tableOrder);
+      console.log("🔍 tableOrders:", JSON.stringify(tableOrders, null, 2));
+    }
+    else{
+
+    const tableOrder = tableOrders[0]
+      if (!tableOrder.orderees.includes(customerName)) {
+        tableOrder.orderees.push(customerName);
+      }
+      tableOrder.personalOrders.push(personalOrder);
+  }
+    console.log("hiiiii!!!: ",tableOrder.toString())
+
+    // tableOrders.push(tableOrder);
+    // tableOrders.push(tableOrder);
+
+
+
+        // tableOrder.push(personalOrder);
+      localStorage.setItem("tableOrders", JSON.stringify(tableOrders));
+        // tableOrder.push(personalOrder);
+      // localStorage.removeItem("tableOrders");
+
+
+      console.log("Order created:", tableOrder)
+    console.log("🔍 Current Cart Before Adding Item:", JSON.stringify(tableOrder, null, 2));
+
+
+
+
+
+
+      // Redirect to menu
+      setLocation(`/tableorder/${tableId}`);
+
+
+  };
+
   return (
     <div className="min-h-screen p-4" dir="rtl">
       <header className="mb-6">
@@ -370,7 +467,7 @@ export default function Cart() {
               <Separator className="my-4" />
               <Button
                 className="w-full"
-                onClick={() => handleAddPersonalOrderSuccess()}
+                onClick={() => handleDoOrder()}
                 disabled={isPlacingOrder}
               >
                 הזמן

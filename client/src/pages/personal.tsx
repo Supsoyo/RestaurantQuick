@@ -111,6 +111,13 @@ export default function Cart() {
 
     
       const tableOrders = JSON.parse(localStorage.getItem("tableOrders") || "[]");
+      // const tableOrders = [
+      //   {
+      //     tableId: "someTableId",  // Replace with actual tableId
+      //     orderees: [],  // Add the first customer
+      //     personalOrders: [],
+      //   }
+      // ];
 
     const customerName = localStorage.getItem("customerName") || "Guest"
 
@@ -124,6 +131,7 @@ export default function Cart() {
     const tableOrder = {}
 
     console.log("tableOrders.length: ",tableOrders.length)
+    
 
     if (tableOrders.length === 0) {
       // If no order exists for this table, create a new tableOrder 

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "wouter";
+import { useParams, Link, useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Clock, ChefHat, TruckIcon, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Clock, ChefHat, TruckIcon, CheckCircle2, CreditCard } from "lucide-react";
 import { type Order } from "@shared/schema";
 import { Separator } from "@/components/ui/separator";
 
@@ -28,6 +28,8 @@ export default function Orders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [tableOrders, setTableOrders] = useState<TableOrder[]>([]);
   const [loading, setLoading] = useState(true);
+  const [, setLocation] = useLocation();
+
 
   useEffect(() => {
     try {
@@ -113,6 +115,7 @@ export default function Orders() {
 
     return (Number(item.price) + additionalCost) * item.quantity;
   };
+  console.log("tableOrders: ",JSON.stringify(tableOrders));
 
   return (
     <div className="min-h-screen p-4" dir="rtl">
@@ -125,7 +128,18 @@ export default function Orders() {
           <ArrowLeft className="h-4 w-4 mr-2" />
           חזרה
         </Button>
-        <h1 className="text-2xl font-bold">ההזמנות שלי</h1>
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold">ההזמנות שלי</h1>
+          {tableOrders.length > 0 && (
+            <Button
+              onClick={() => setLocation(`/table-payment/${tableId}`)}
+              className="flex items-center gap-2"
+            >
+              <CreditCard className="h-4 w-4" />
+              תשלום שולחן
+            </Button>
+          )}
+        </div>
       </header>
 
       <div className="space-y-8">
