@@ -60,7 +60,26 @@ export const tableOrders = pgTable("table_orders", {
   id: serial("id").primaryKey(),
   tableId: integer("table_id").notNull(),
   restaurantId: integer("restaurant_id").notNull().references(() => restaurants.id),
-  orderDetails: jsonb("order_details").notNull(),
+  orderDetails: jsonb("order_details").$type<{
+    orderees: string[];
+    personalOrders: Array<{
+      ordererName: string;
+      cartItems: Array<{
+        id: number;
+        name: string;
+        price: string;
+        imageUrl: string;
+        quantity: number;
+        customizations: {
+          excludeIngredients: string[];
+          specialInstructions: string;
+          selectedIngredients: Record<string, string[]>;
+          selectedRadioOptions: Record<string, string>;
+        };
+      }>;
+      price: string;
+    }>;
+  }>().notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -155,6 +174,36 @@ export type InsertOrder = z.infer<typeof insertOrderSchema>;
 export type OrderItem = typeof orderItems.$inferSelect;
 export type Table = typeof tables.$inferSelect;
 export type TableOrder = typeof tableOrders.$inferSelect;
-export type InsertTableOrder = z.infer<typeof insertTableOrderSchema>;
+export type InsertTableOrder = z.infer<typeof customInsertTableOrderSchema>;
 export type Feedback = typeof feedback.$inferSelect;
 export type InsertFeedback = z.infer<typeof insertFeedbackSchema>;
+
+export const personalOrderSchema = z.object({
+  ordererName: z.string(),
+  cartItems: z.array(z.object({
+    id: z.number(),
+    name: z.string(),
+    price: z.string(),
+    imageUrl: z.string(),
+    quantity: z.number(),
+    customizations: z.object({
+      excludeIngredients: z.array(z.string()),
+      specialInstructions: z.string(),
+      selectedIngredients: z.record(z.string(), z.array(z.string())),
+      selectedRadioOptions: z.record(z.string(), z.string()),
+    }),
+  })),
+  price: z.string(),
+});
+
+export const tableOrderDetailsSchema = z.object({
+  orderees: z.array(z.string()),
+  personalOrders: z.array(personalOrderSchema),
+});
+
+export const customInsertTableOrderSchema = insertTableOrderSchema.extend({
+  orderDetails: tableOrderDetailsSchema,
+});
+
+export type PersonalOrder = z.infer<typeof personalOrderSchema>;
+export type TableOrderDetails = z.infer<typeof tableOrderDetailsSchema>;

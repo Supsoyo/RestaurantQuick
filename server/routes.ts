@@ -28,17 +28,6 @@ export function registerRoutes(app: Express) {
     res.json(restaurant);
   });
 
-  app.post("/api/restaurants", async (req, res) => {
-    const result = insertRestaurantSchema.safeParse(req.body);
-    if (!result.success) {
-      res.status(400).json({ message: "Invalid restaurant data" });
-      return;
-    }
-
-    const restaurant = await storage.createRestaurant(result.data);
-    res.status(201).json(restaurant);
-  });
-
   // Get menu items for a specific restaurant
   app.get("/api/restaurants/:restaurantId/menu", async (req, res) => {
     const items = await storage.getMenuItems(Number(req.params.restaurantId));
@@ -61,7 +50,7 @@ export function registerRoutes(app: Express) {
       const { amount } = req.body;
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(amount * 100), // Convert to cents
-        currency: "usd",
+        currency: "ils", // Changed to Israeli Shekel
         automatic_payment_methods: {
           enabled: true,
         },
@@ -104,44 +93,50 @@ export function registerRoutes(app: Express) {
     res.json({ ...order, items });
   });
 
-  // Create a table order
+  // Table Orders API
   app.post("/api/table-orders", async (req, res) => {
-    const result = insertTableOrderSchema.safeParse(req.body);
-    if (!result.success) {
-      res.status(400).json({ message: "Invalid table order data" });
-      return;
-    }
-
-    const table = await storage.getTable(result.data.tableId);
-    if (!table) {
-      res.status(404).json({ message: "Table not found" });
-      return;
-    }
-
-    const tableOrder = await storage.createTableOrder(result.data);
-    res.status(201).json(tableOrder);
-  });
-
-  // Get table orders by table ID
-  app.get("/api/table-orders/:tableId", async (req, res) => {
-    const tableOrders = await storage.getTableOrdersByTableId(Number(req.params.tableId));
-    res.json(tableOrders);
-  });
-
-  // Update a table order
-  app.patch("/api/table-orders/:id", async (req, res) => {
-    const id = Number(req.params.id);
-    const { orderDetails } = req.body;
-
     try {
-      const updatedOrder = await storage.updateTableOrder(id, { orderDetails });
-      res.json(updatedOrder);
+      const { tableId, orderDetails } = req.body;
+
+      if (!tableId || !orderDetails) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      const tableOrder = await storage.createTableOrder({
+        tableId,
+        orderDetails
+      });
+
+      res.status(201).json(tableOrder);
     } catch (error) {
+      console.error("Error creating table order:", error);
+      res.status(500).json({ message: "Failed to create table order" });
+    }
+  });
+
+  app.get("/api/table-orders/:tableId", async (req, res) => {
+    try {
+      const tableOrders = await storage.getTableOrdersByTableId(Number(req.params.tableId));
+      res.json(tableOrders);
+    } catch (error) {
+      console.error("Error fetching table orders:", error);
+      res.status(500).json({ message: "Failed to fetch table orders" });
+    }
+  });
+
+  app.patch("/api/table-orders/:id", async (req, res) => {
+    try {
+      const { orderDetails } = req.body;
+      const tableOrder = await storage.updateTableOrder(Number(req.params.id), {
+        orderDetails
+      });
+      res.json(tableOrder);
+    } catch (error) {
+      console.error("Error updating table order:", error);
       res.status(500).json({ message: "Failed to update table order" });
     }
   });
 
-  // Delete a table order
   app.delete("/api/table-orders/:id", async (req, res) => {
     const id = Number(req.params.id);
 
@@ -152,6 +147,7 @@ export function registerRoutes(app: Express) {
       res.status(500).json({ message: "Failed to delete table order" });
     }
   });
+
 
   // Submit feedback
   app.post("/api/feedback", async (req, res) => {
