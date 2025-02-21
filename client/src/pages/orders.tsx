@@ -5,15 +5,20 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Clock, ChefHat, TruckIcon, CheckCircle2, CreditCard } from "lucide-react";
 import { type Order } from "@shared/schema";
 import { Separator } from "@/components/ui/separator";
+import { useQuery } from "@tanstack/react-query";
 
 interface TableOrder {
-  tableId: string;
-  orderees: string[];
-  personalOrders: Array<{
-    ordererName: string;
-    cartItems: any[];
-    price: string;
-  }>;
+  id: number;
+  tableId: number;
+  orderDetails: {
+    orderees: string[];
+    personalOrders: Array<{
+      ordererName: string;
+      cartItems: any[];
+      price: string;
+    }>;
+  };
+  createdAt: string;
 }
 
 const STATUS_ICONS = {
@@ -25,59 +30,27 @@ const STATUS_ICONS = {
 
 export default function Orders() {
   const { tableId } = useParams();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [tableOrders, setTableOrders] = useState<TableOrder[]>([]);
-  const [loading, setLoading] = useState(true);
   const [, setLocation] = useLocation();
 
+  // Fetch table orders
+  const { data: tableOrders = [], isLoading: isLoadingTableOrders } = useQuery({
+    queryKey: ['/api/table-orders', tableId],
+    queryFn: async () => {
+      const response = await fetch(`/api/table-orders/${tableId}`);
+      if (!response.ok) throw new Error('Failed to fetch table orders');
+      return response.json();
+    },
+  });
 
-  useEffect(() => {
-    try {
-      // Load individual orders from localStorage
-      const storedOrders = JSON.parse(localStorage.getItem("orders") || "{}");
-      const individualOrders = Object.values(storedOrders)
-        .filter((order: Order) => order.tableId === Number(tableId))
-        .sort((a: Order, b: Order) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-      setOrders(individualOrders);
-
-      // Load table orders from localStorage
-      const storedTableOrders = JSON.parse(localStorage.getItem("tableOrders") || "[]");
-      setTableOrders(storedTableOrders);
-    } catch (error) {
-      console.error("Error loading orders:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [tableId]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen p-4" dir="rtl">
-        <header className="mb-6">
-          <Button
-            variant="ghost"
-            className="mb-4"
-            onClick={() => window.history.back()}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            חזרה
-          </Button>
-          <h1 className="text-2xl font-bold">ההזמנות שלי</h1>
-        </header>
-        <Card>
-          <CardContent className="p-6">
-            <div className="animate-pulse space-y-4">
-              <div className="h-4 bg-muted rounded w-1/4"></div>
-              <div className="h-2 bg-muted rounded"></div>
-              <div className="h-2 bg-muted rounded w-3/4"></div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  // Fetch individual orders
+  const { data: orders = [], isLoading: isLoadingOrders } = useQuery({
+    queryKey: ['/api/orders', tableId],
+    queryFn: async () => {
+      const response = await fetch(`/api/orders/${tableId}`);
+      if (!response.ok) throw new Error('Failed to fetch orders');
+      return response.json();
+    },
+  });
 
   const calculateItemPrice = (item: any) => {
     let additionalCost = 0;
@@ -115,7 +88,33 @@ export default function Orders() {
 
     return (Number(item.price) + additionalCost) * item.quantity;
   };
-  console.log("tableOrders: ",JSON.stringify(tableOrders));
+
+  if (isLoadingTableOrders || isLoadingOrders) {
+    return (
+      <div className="min-h-screen p-4" dir="rtl">
+        <header className="mb-6">
+          <Button
+            variant="ghost"
+            className="mb-4"
+            onClick={() => window.history.back()}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            חזרה
+          </Button>
+          <h1 className="text-2xl font-bold">ההזמנות שלי</h1>
+        </header>
+        <Card>
+          <CardContent className="p-6">
+            <div className="animate-pulse space-y-4">
+              <div className="h-4 bg-muted rounded w-1/4"></div>
+              <div className="h-2 bg-muted rounded"></div>
+              <div className="h-2 bg-muted rounded w-3/4"></div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-4" dir="rtl">
@@ -153,16 +152,16 @@ export default function Orders() {
               </CardContent>
             </Card>
           ) : (
-            tableOrders.map((tableOrder, index) => (
-              <Card key={index} className="mb-4">
+            tableOrders.map((tableOrder: TableOrder) => (
+              <Card key={tableOrder.id} className="mb-4">
                 <CardContent className="p-4">
                   <div className="space-y-4">
                     <h3 className="font-medium">שולחן מספר {tableOrder.tableId}</h3>
                     <div className="text-sm text-muted-foreground">
-                      סועדים: {tableOrder.orderees.join(", ")}
+                      סועדים: {tableOrder.orderDetails.orderees.join(", ")}
                     </div>
 
-                    {tableOrder.personalOrders.map((personalOrder, orderIndex) => (
+                    {tableOrder.orderDetails.personalOrders.map((personalOrder, orderIndex) => (
                       <div key={orderIndex} className="bg-muted/50 rounded-lg p-4 mt-4">
                         <h4 className="font-medium mb-2">{personalOrder.ordererName}</h4>
                         {personalOrder.cartItems.map((item, itemIndex) => (
@@ -225,7 +224,7 @@ export default function Orders() {
                       <div className="flex justify-between font-bold">
                         <span>סה״כ שולחן</span>
                         <span>
-                          ₪{tableOrder.personalOrders.reduce((sum, order) =>
+                          ₪{tableOrder.orderDetails.personalOrders.reduce((sum, order) =>
                             sum + Number(order.price), 0
                           ).toFixed(2)}
                         </span>
@@ -248,7 +247,7 @@ export default function Orders() {
               </CardContent>
             </Card>
           ) : (
-            orders.map((order) => {
+            orders.map((order: Order) => {
               const StatusIcon = STATUS_ICONS[order.status as keyof typeof STATUS_ICONS].icon;
               return (
                 <Link key={order.id} href={`/order/${order.id}`}>

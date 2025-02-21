@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer } from "http";
 import { storage } from "./storage";
-import { insertOrderSchema } from "@shared/schema";
+import { insertOrderSchema, insertTableOrderSchema, insertFeedbackSchema } from "@shared/schema";
 import Stripe from "stripe";
 
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -76,6 +76,74 @@ export function registerRoutes(app: Express) {
 
     const items = await storage.getOrderItems(order.id);
     res.json({ ...order, items });
+  });
+
+  // Create a table order
+  app.post("/api/table-orders", async (req, res) => {
+    const result = insertTableOrderSchema.safeParse(req.body);
+    if (!result.success) {
+      res.status(400).json({ message: "Invalid table order data" });
+      return;
+    }
+
+    const table = await storage.getTable(result.data.tableId);
+    if (!table) {
+      res.status(404).json({ message: "Table not found" });
+      return;
+    }
+
+    const tableOrder = await storage.createTableOrder(result.data);
+    res.status(201).json(tableOrder);
+  });
+
+  // Get table orders by table ID
+  app.get("/api/table-orders/:tableId", async (req, res) => {
+    const tableOrders = await storage.getTableOrdersByTableId(Number(req.params.tableId));
+    res.json(tableOrders);
+  });
+
+  // Update a table order
+  app.patch("/api/table-orders/:id", async (req, res) => {
+    const id = Number(req.params.id);
+    const { orderDetails } = req.body;
+
+    try {
+      const updatedOrder = await storage.updateTableOrder(id, { orderDetails });
+      res.json(updatedOrder);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update table order" });
+    }
+  });
+
+  // Delete a table order
+  app.delete("/api/table-orders/:id", async (req, res) => {
+    const id = Number(req.params.id);
+
+    try {
+      await storage.deleteTableOrder(id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete table order" });
+    }
+  });
+
+
+  // Submit feedback
+  app.post("/api/feedback", async (req, res) => {
+    const result = insertFeedbackSchema.safeParse(req.body);
+    if (!result.success) {
+      res.status(400).json({ message: "Invalid feedback data" });
+      return;
+    }
+
+    const feedback = await storage.createFeedback(result.data);
+    res.status(201).json(feedback);
+  });
+
+  // Get feedback by table ID
+  app.get("/api/feedback/:tableId", async (req, res) => {
+    const feedback = await storage.getFeedbackByTableId(Number(req.params.tableId));
+    res.json(feedback);
   });
 
   return server;

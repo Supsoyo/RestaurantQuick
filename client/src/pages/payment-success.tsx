@@ -2,12 +2,12 @@ import { useState } from "react";
 import { useParams, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { CheckCircle2, ArrowLeft, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useMutation } from "@tanstack/react-query";
 
 export default function PaymentSuccess() {
   const { tableId } = useParams();
@@ -18,24 +18,39 @@ export default function PaymentSuccess() {
   const [comment, setComment] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
+  const submitFeedbackMutation = useMutation({
+    mutationFn: async (feedback: { tableId: number; rating: number; comment: string }) => {
+      const response = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(feedback),
+      });
+      if (!response.ok) throw new Error('Failed to submit feedback');
+      return response.json();
+    },
+    onSuccess: () => {
+      setSubmitted(true);
+      toast({
+        title: "תודה על המשוב!",
+        description: "המשוב שלך יעזור לנו להשתפר.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "שגיאה",
+        description: "אירעה שגיאה בשליחת המשוב. אנא נסה שוב.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleSubmitFeedback = () => {
-    // Here you would typically send this to your backend
-    // For now, we'll just store it in localStorage
-    const feedback = {
-      tableId,
-      rating,
-      comment,
-      timestamp: new Date().toISOString(),
-    };
-
-    const feedbacks = JSON.parse(localStorage.getItem("feedbacks") || "[]");
-    feedbacks.push(feedback);
-    localStorage.setItem("feedbacks", JSON.stringify(feedbacks));
-
-    setSubmitted(true);
-    toast({
-      title: "תודה על המשוב!",
-      description: "המשוב שלך יעזור לנו להשתפר.",
+    submitFeedbackMutation.mutate({
+      tableId: Number(tableId),
+      rating: Number(rating),
+      comment: comment,
     });
   };
 
@@ -101,68 +116,6 @@ export default function PaymentSuccess() {
                     </RadioGroup>
                   </div>
                   <div>
-                    <Label>איך היה השירות?</Label>
-                    <RadioGroup
-                      value={rating}
-                      onValueChange={setRating}
-                      className="flex gap-4 justify-center my-2"
-                    >
-                      {[5, 4, 3, 2, 1].map((value) => (
-                        <div key={value} className="flex flex-col items-center">
-                          <RadioGroupItem
-                            value={value.toString()}
-                            id={`rating-${value}`}
-                            className="sr-only"
-                          />
-                          <Label
-                            htmlFor={`rating-${value}`}
-                            className={`cursor-pointer p-2 rounded-full hover:bg-muted ${
-                              rating === value.toString() ? "text-primary" : ""
-                            }`}
-                          >
-                            <Star
-                              className={`h-8 w-8 ${
-                                rating === value.toString() ? "fill-current" : ""
-                              }`}
-                            />
-                          </Label>
-                          <span className="text-sm">{value}</span>
-                        </div>
-                      ))}
-                    </RadioGroup>
-                  </div>
-                  <div>
-                    <Label>איך היה חווית השימוש באפליקציה?</Label>
-                    <RadioGroup
-                      value={rating}
-                      onValueChange={setRating}
-                      className="flex gap-4 justify-center my-2"
-                    >
-                      {[5, 4, 3, 2, 1].map((value) => (
-                        <div key={value} className="flex flex-col items-center">
-                          <RadioGroupItem
-                            value={value.toString()}
-                            id={`rating-${value}`}
-                            className="sr-only"
-                          />
-                          <Label
-                            htmlFor={`rating-${value}`}
-                            className={`cursor-pointer p-2 rounded-full hover:bg-muted ${
-                              rating === value.toString() ? "text-primary" : ""
-                            }`}
-                          >
-                            <Star
-                              className={`h-8 w-8 ${
-                                rating === value.toString() ? "fill-current" : ""
-                              }`}
-                            />
-                          </Label>
-                          <span className="text-sm">{value}</span>
-                        </div>
-                      ))}
-                    </RadioGroup>
-                  </div>
-                  <div>
                     <Label htmlFor="comment">תגובה (אופציונלי)</Label>
                     <Textarea
                       id="comment"
@@ -175,8 +128,9 @@ export default function PaymentSuccess() {
                   <Button
                     onClick={handleSubmitFeedback}
                     className="w-full"
+                    disabled={submitFeedbackMutation.isPending}
                   >
-                    שלח משוב
+                    {submitFeedbackMutation.isPending ? "שולח משוב..." : "שלח משוב"}
                   </Button>
                 </div>
               </div>

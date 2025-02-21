@@ -22,6 +22,8 @@ export interface IStorage {
   createTableOrder(tableOrder: InsertTableOrder): Promise<TableOrder>;
   getTableOrder(id: number): Promise<TableOrder | undefined>;
   getTableOrdersByTableId(tableId: number): Promise<TableOrder[]>;
+  updateTableOrder(id: number, updates: Partial<TableOrder>): Promise<TableOrder>;
+  deleteTableOrder(id: number): Promise<void>;
 
   // Feedback
   createFeedback(feedbackData: InsertFeedback): Promise<Feedback>;
@@ -94,6 +96,19 @@ export class DatabaseStorage implements IStorage {
 
   async getTableOrdersByTableId(tableId: number): Promise<TableOrder[]> {
     return await db.select().from(tableOrders).where(eq(tableOrders.tableId, tableId));
+  }
+
+  async updateTableOrder(id: number, updates: Partial<TableOrder>): Promise<TableOrder> {
+    const [updated] = await db.update(tableOrders)
+      .set(updates)
+      .where(eq(tableOrders.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteTableOrder(id: number): Promise<void> {
+    await db.delete(tableOrders)
+      .where(eq(tableOrders.id, id));
   }
 
   async createFeedback(feedbackData: InsertFeedback): Promise<Feedback> {

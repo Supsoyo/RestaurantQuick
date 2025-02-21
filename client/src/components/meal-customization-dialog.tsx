@@ -40,6 +40,7 @@ export default function MealCustomizationDialog({
     const initial: Record<string, Record<string, number>> = {};
     item.checkLists?.forEach(checklist => {
       initial[checklist.name] = {};
+      console.log(JSON.stringify(item));
       checklist.possibleIngredients.forEach(ingredient => {
         initial[checklist.name][ingredient.name] = 0;
       });
