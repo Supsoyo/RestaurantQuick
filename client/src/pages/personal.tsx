@@ -7,11 +7,9 @@ import { useToast } from "@/hooks/use-toast";
 import { type MenuItem } from "@shared/schema";
 import { ArrowLeft, Minus, Plus, Trash2 } from "lucide-react";
 import CallWaiterButton from "@/components/call-waiter-button";
-// import { useLocation } from "wouter";
-import PaymentForm from "@/components/payment-form";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/auth-context";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 interface CartItem extends MenuItem {
   quantity: number;
@@ -23,28 +21,45 @@ interface CartItem extends MenuItem {
   };
 }
 
-const TIP_OPTIONS = [
-  { value: "0", label: "ללא טיפ" },
-  { value: "10", label: "10%" },
-  { value: "12", label: "12%" },
-  { value: "15", label: "15%" },
-  { value: "18", label: "18%" },
-  { value: "20", label: "20%" },
-  { value: "custom", label: "סכום אחר" },
-];
-
-export default function Cart() {
+export default function Personal() {
   const { tableId } = useParams();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const [showPayment, setShowPayment] = useState(false);
-  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
-  const [tipPercentage, setTipPercentage] = useState("10"); // Default 10% tip
-  const [customTipAmount, setCustomTipAmount] = useState("");
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [items, setItems] = useState<CartItem[]>(() =>
     JSON.parse(localStorage.getItem("cart") || "[]")
   );
-  // const [, setLocation] = useLocation();
+
+  const { data: tableOrders, isLoading } = useQuery({
+    queryKey: ["table-orders", tableId],
+    queryFn: async () => {
+      const response = await apiRequest(`/api/table-orders/${tableId}`);
+      return response.json();
+    },
+  });
+
+  const createTableOrderMutation = useMutation({
+    mutationFn: async (orderData: any) => {
+      const response = await apiRequest("/api/table-orders", {
+        method: "POST",
+        body: JSON.stringify(orderData),
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["table-orders", tableId] });
+      localStorage.removeItem("cart");
+      setLocation(`/tableorder/${tableId}`);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to create table order. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const calculateItemPrice = (item: CartItem) => {
     let additionalCost = 0;
@@ -53,13 +68,11 @@ export default function Cart() {
     Object.entries(item.customizations.selectedIngredients).forEach(([checklistName, selectedIngredients]) => {
       const checklist = item.checkLists.find(c => c.name === checklistName);
       if (checklist) {
-        // Count occurrences of each ingredient
         const ingredientCounts: Record<string, number> = {};
         selectedIngredients.forEach(ing => {
           ingredientCounts[ing] = (ingredientCounts[ing] || 0) + 1;
         });
 
-        // Calculate cost based on counts
         Object.entries(ingredientCounts).forEach(([ingredientName, count]) => {
           const ingredient = checklist.possibleIngredients.find(i => i.name === ingredientName);
           if (ingredient) {
@@ -83,100 +96,30 @@ export default function Cart() {
     return (Number(item.price) + additionalCost) * item.quantity;
   };
 
-  const handleAddPersonalOrderSuccess = async () => {
-    setIsPlacingOrder(true);
-      const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+  const handleAddPersonalOrder = async () => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "Please log in to place an order",
+        variant: "destructive",
+      });
+      return;
+    }
 
-      // localStorage.removeItem("cart");
-    //   const tableOrder = JSON.parse(localStorage.getItem("tableorder") || "[]");
-
-    // const customerName = localStorage.getItem("customerName") || "Guest"
-
-    // // Create a personal order object
-    // const personalOrder = {
-    //   ordererName: customerName,
-    //   cartItems: cart,
-    // };
-
-    //     tableOrder.push(personalOrder);
-    //   localStorage.setItem("tableOrder", JSON.stringify(tableOrder));
-
-
-    //   console.log("Order created:", tableOrder)
-    // console.log("🔍 Current Cart Before Adding Item:", JSON.stringify(tableOrder, null, 2));
-      // localStorage.removeItem("cart");
-
-
-
-
-    
-      const tableOrders = JSON.parse(localStorage.getItem("tableOrders") || "[]");
-      // const tableOrders = [
-      //   {
-      //     tableId: "someTableId",  // Replace with actual tableId
-      //     orderees: [],  // Add the first customer
-      //     personalOrders: [],
-      //   }
-      // ];
-
-    const customerName = localStorage.getItem("customerName") || "Guest"
-
-    // Create a personal order object
     const personalOrder = {
-      ordererName: customerName,
-      cartItems: cart,
-      price: subtotal.toFixed(2),
+      tableId: Number(tableId),
+      restaurantId: 1, // This should be dynamic based on the restaurant context
+      orderDetails: {
+        orderees: [user.displayName || user.email || "Anonymous"],
+        personalOrders: [{
+          ordererName: user.displayName || user.email || "Anonymous",
+          cartItems: items,
+          price: subtotal.toFixed(2),
+        }],
+      },
     };
 
-    const tableOrder = {}
-
-    console.log("tableOrders.length: ",tableOrders.length)
-    
-
-    if (tableOrders.length === 0) {
-      // If no order exists for this table, create a new tableOrder 
-      const tableOrder = {
-        tableId: "someTableId",  // Replace with actual tableId
-        orderees: [customerName],  // Add the first customer
-        personalOrders: [personalOrder],
-      };
-      console.log("🔍 tableOrder:", JSON.stringify(tableOrder, null, 2));
-      tableOrders.push(tableOrder);
-      console.log("🔍 tableOrders:", JSON.stringify(tableOrders, null, 2));
-    }
-    else{
-      
-    const tableOrder = tableOrders[0]
-      if (!tableOrder.orderees.includes(customerName)) {
-        tableOrder.orderees.push(customerName);
-      }
-      tableOrder.personalOrders.push(personalOrder);
-  }
-    console.log("hiiiii!!!: ",tableOrder.toString())
-
-    // tableOrders.push(tableOrder);
-    // tableOrders.push(tableOrder);
-    
-
-
-        // tableOrder.push(personalOrder);
-      localStorage.setItem("tableOrders", JSON.stringify(tableOrders));
-        // tableOrder.push(personalOrder);
-      // localStorage.removeItem("tableOrders");
-
-
-      console.log("Order created:", tableOrder)
-    console.log("🔍 Current Cart Before Adding Item:", JSON.stringify(tableOrder, null, 2));
-
-      
-
-
-
-
-      // Redirect to menu
-      setLocation(`/tableorder/${tableId}`);
-  
-      
+    createTableOrderMutation.mutate(personalOrder);
   };
 
   const updateQuantity = (index: number, newQuantity: number) => {
@@ -199,11 +142,17 @@ export default function Cart() {
     0
   );
 
-  const tipAmount = tipPercentage === "custom"
-    ? Number(customTipAmount) || 0
-    : (subtotal * Number(tipPercentage)) / 100;
-
-  const total = subtotal + tipAmount;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen p-4">
+        <Card>
+          <CardContent className="p-6">
+            Loading...
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-4" dir="rtl">
@@ -246,13 +195,11 @@ export default function Cart() {
                     {Object.entries(item.customizations?.selectedIngredients || {}).map(([name, ingredients]) => {
                       if (ingredients.length === 0) return null;
 
-                      // Count occurrences of each ingredient
                       const ingredientCounts: Record<string, number> = {};
                       ingredients.forEach(ing => {
                         ingredientCounts[ing] = (ingredientCounts[ing] || 0) + 1;
                       });
 
-                      // Format the display string
                       const displayString = Object.entries(ingredientCounts)
                         .map(([ing, count]) => `${ing} (${count})`)
                         .join(", ");
@@ -317,19 +264,14 @@ export default function Cart() {
                   <span>₪{subtotal.toFixed(2)}</span>
                 </div>
 
-                
-
-
                 <Separator className="my-4" />
                 <Button
                   className="w-full"
-                  onClick={() => handleAddPersonalOrderSuccess()}
-                  disabled={isPlacingOrder}
+                  onClick={handleAddPersonalOrder}
+                  disabled={createTableOrderMutation.isPending}
                 >
-                  הוסף להזמנה של שולחן
+                  {createTableOrderMutation.isPending ? "מוסיף להזמנה..." : "הוסף להזמנה של שולחן"}
                 </Button>
-
-
               </div>
             </CardContent>
           </Card>

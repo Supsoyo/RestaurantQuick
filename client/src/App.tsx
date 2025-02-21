@@ -10,21 +10,52 @@ import Orders from "@/pages/orders";
 import OrderStatus from "@/pages/order-status";
 import TablePayment from "@/pages/table-payment";
 import PaymentSuccess from "@/pages/payment-success";
-import personal from "@/pages/personal";
-import table from "@/pages/table";
+import Login from "@/pages/login";
+import { AuthProvider, useAuth } from "@/contexts/auth-context";
+import { useLocation } from "wouter";
+import { useEffect } from "react";
+
+// ProtectedRoute component to handle authentication
+function ProtectedRoute({ component: Component, ...rest }: { component: React.ComponentType<any> }) {
+  const { user, loading } = useAuth();
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      setLocation("/login");
+    }
+  }, [user, loading, setLocation]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  return user ? <Component {...rest} /> : null;
+}
 
 function Router() {
   return (
     <Switch>
+      <Route path="/login" component={Login} />
       <Route path="/" component={Home} />
-      <Route path="/menu/:tableId" component={Menu} />
-      <Route path="/cart/:tableId" component={Cart} />
-      <Route path="/orders/:tableId" component={Orders} />
-      <Route path="/order/:orderId" component={OrderStatus} />
-      <Route path="/personal/:orderId" component={personal} />
-      <Route path="/tableorder/:orderId" component={table} />
-      <Route path="/table-payment/:tableId" component={TablePayment} />
-      <Route path="/payment-success/:tableId" component={PaymentSuccess} />
+      <Route path="/menu/:tableId">
+        {(params) => <ProtectedRoute component={Menu} {...params} />}
+      </Route>
+      <Route path="/cart/:tableId">
+        {(params) => <ProtectedRoute component={Cart} {...params} />}
+      </Route>
+      <Route path="/orders/:tableId">
+        {(params) => <ProtectedRoute component={Orders} {...params} />}
+      </Route>
+      <Route path="/order/:orderId">
+        {(params) => <ProtectedRoute component={OrderStatus} {...params} />}
+      </Route>
+      <Route path="/table-payment/:tableId">
+        {(params) => <ProtectedRoute component={TablePayment} {...params} />}
+      </Route>
+      <Route path="/payment-success/:tableId">
+        {(params) => <ProtectedRoute component={PaymentSuccess} {...params} />}
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );
@@ -32,10 +63,12 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Router />
-      <Toaster />
-    </QueryClientProvider>
+    <AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <Router />
+        <Toaster />
+      </QueryClientProvider>
+    </AuthProvider>
   );
 }
 
