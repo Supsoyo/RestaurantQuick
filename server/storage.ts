@@ -1,15 +1,21 @@
-import { MenuItem, Order, OrderItem, Table, TableOrder, Feedback,
-  type InsertMenuItem, type InsertOrder, type InsertTableOrder, type InsertFeedback } from "@shared/schema";
+import { MenuItem, Order, OrderItem, Table, TableOrder, Feedback, Restaurant,
+  type InsertMenuItem, type InsertOrder, type InsertTableOrder, type InsertFeedback, type InsertRestaurant } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
-import { menuItems, orders, orderItems, tables, tableOrders, feedback } from "@shared/schema";
+import { eq, and } from "drizzle-orm";
+import { menuItems, orders, orderItems, tables, tableOrders, feedback, restaurants } from "@shared/schema";
 
 export interface IStorage {
+  // Restaurants
+  getRestaurants(): Promise<Restaurant[]>;
+  getRestaurant(id: number): Promise<Restaurant | undefined>;
+  createRestaurant(restaurant: InsertRestaurant): Promise<Restaurant>;
+
   // Menu Items
-  getMenuItems(): Promise<MenuItem[]>;
+  getMenuItems(restaurantId: number): Promise<MenuItem[]>;
   getMenuItem(id: number): Promise<MenuItem | undefined>;
 
   // Tables
+  getTables(restaurantId: number): Promise<Table[]>;
   getTable(id: number): Promise<Table | undefined>;
 
   // Orders
@@ -27,17 +33,35 @@ export interface IStorage {
 
   // Feedback
   createFeedback(feedbackData: InsertFeedback): Promise<Feedback>;
-  getFeedbackByTableId(tableId: number): Promise<Feedback[]>;
+  getFeedbackByRestaurantId(restaurantId: number): Promise<Feedback[]>;
 }
 
 export class DatabaseStorage implements IStorage {
-  async getMenuItems(): Promise<MenuItem[]> {
-    return await db.select().from(menuItems);
+  async getRestaurants(): Promise<Restaurant[]> {
+    return await db.select().from(restaurants);
+  }
+
+  async getRestaurant(id: number): Promise<Restaurant | undefined> {
+    const [restaurant] = await db.select().from(restaurants).where(eq(restaurants.id, id));
+    return restaurant;
+  }
+
+  async createRestaurant(restaurant: InsertRestaurant): Promise<Restaurant> {
+    const [created] = await db.insert(restaurants).values(restaurant).returning();
+    return created;
+  }
+
+  async getMenuItems(restaurantId: number): Promise<MenuItem[]> {
+    return await db.select().from(menuItems).where(eq(menuItems.restaurantId, restaurantId));
   }
 
   async getMenuItem(id: number): Promise<MenuItem | undefined> {
     const [item] = await db.select().from(menuItems).where(eq(menuItems.id, id));
     return item;
+  }
+
+  async getTables(restaurantId: number): Promise<Table[]> {
+    return await db.select().from(tables).where(eq(tables.restaurantId, restaurantId));
   }
 
   async getTable(id: number): Promise<Table | undefined> {
@@ -49,6 +73,7 @@ export class DatabaseStorage implements IStorage {
     const [order] = await db.insert(orders)
       .values({
         tableId: insertOrder.tableId,
+        restaurantId: insertOrder.restaurantId,
         status: "pending",
         total: insertOrder.total,
       })
@@ -59,7 +84,7 @@ export class DatabaseStorage implements IStorage {
         orderId: order.id,
         menuItemId: item.menuItemId,
         quantity: item.quantity,
-        price: item.price.toString(), // Convert number to string for decimal column
+        price: item.price.toString(),
       })));
 
     return order;
@@ -118,12 +143,13 @@ export class DatabaseStorage implements IStorage {
     return created;
   }
 
-  async getFeedbackByTableId(tableId: number): Promise<Feedback[]> {
-    return await db.select().from(feedback).where(eq(feedback.tableId, tableId));
+  async getFeedbackByRestaurantId(restaurantId: number): Promise<Feedback[]> {
+    return await db.select().from(feedback).where(eq(feedback.restaurantId, restaurantId));
   }
 }
 
 export const storage = new DatabaseStorage();
+
 export const samplePersonalOrders = [
   {
     orderNumber: "001",

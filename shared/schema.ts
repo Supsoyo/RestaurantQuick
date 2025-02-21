@@ -1,9 +1,22 @@
 import { pgTable, text, serial, integer, decimal, timestamp, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { relations } from "drizzle-orm";
+
+export const restaurants = pgTable("restaurants", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  address: text("address").notNull(),
+  imageUrl: text("image_url").notNull(),
+  openingHours: jsonb("opening_hours").notNull(),
+  categories: text("categories").array().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
 
 export const menuItems = pgTable("menu_items", {
   id: serial("id").primaryKey(),
+  restaurantId: integer("restaurant_id").notNull().references(() => restaurants.id),
   name: text("name").notNull(),
   description: text("description").notNull(),
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
@@ -15,12 +28,21 @@ export const menuItems = pgTable("menu_items", {
 
 export const tables = pgTable("tables", {
   id: serial("id").primaryKey(),
-  number: integer("number").notNull().unique(),
+  restaurantId: integer("restaurant_id").notNull().references(() => restaurants.id),
+  number: integer("number").notNull(),
 });
+
+export const tablesRelations = relations(tables, ({ one }) => ({
+  restaurant: one(restaurants, {
+    fields: [tables.restaurantId],
+    references: [restaurants.id],
+  }),
+}));
 
 export const orders = pgTable("orders", {
   id: serial("id").primaryKey(),
   tableId: integer("table_id").notNull(),
+  restaurantId: integer("restaurant_id").notNull().references(() => restaurants.id),
   status: text("status", { enum: ["pending", "preparing", "ready", "completed"] }).notNull(),
   total: decimal("total", { precision: 10, scale: 2 }).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -37,62 +59,69 @@ export const orderItems = pgTable("order_items", {
 export const tableOrders = pgTable("table_orders", {
   id: serial("id").primaryKey(),
   tableId: integer("table_id").notNull(),
+  restaurantId: integer("restaurant_id").notNull().references(() => restaurants.id),
   orderDetails: jsonb("order_details").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const feedback = pgTable("feedback", {
   id: serial("id").primaryKey(),
+  restaurantId: integer("restaurant_id").notNull().references(() => restaurants.id),
   tableId: integer("table_id").notNull(),
   rating: integer("rating").notNull(),
   comment: text("comment"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// Define schemas for table orders
+export const insertRestaurantSchema = createInsertSchema(restaurants).pick({
+  name: true,
+  description: true,
+  address: true,
+  imageUrl: true,
+  openingHours: true,
+  categories: true,
+});
+
 export const insertTableOrderSchema = createInsertSchema(tableOrders).pick({
   tableId: true,
+  restaurantId: true,
   orderDetails: true,
 });
 
-// Define schema for feedback
 export const insertFeedbackSchema = createInsertSchema(feedback).pick({
+  restaurantId: true,
   tableId: true,
   rating: true,
   comment: true,
 });
 
-// Define the structure for the checklist objects
 const ingredientsSchema = z.object({
-  name: z.string(), // Name of the checklist (e.g., "תוספות")
+  name: z.string(),
   price: z.string(),
   maxAmount: z.number(),
 });
 
-// Define the structure for the checklist objects  
 const optIngredientsSchema = z.object({
-  name: z.string(), // Name of the checklist (e.g., "תוספות")
+  name: z.string(),
   price: z.string(),
 });
-// Define the structure for the checklist objects
+
 const checklistSchema = z.object({
-  name: z.string(), // Name of the checklist (e.g., "תוספות")
+  name: z.string(),
   amount: z.number(),
-  // possibleIngredients: z.array(z.string()).min(1), // List of ingredients for this checklist (e.g., ["עגבנייה", "בצל", "חסה"])
 });
-// Create a custom schema that includes `checkLists` as an array of checklist objects
+
 export const customChecklistSchema = checklistSchema.extend({
-    possibleIngredients: z.array(ingredientsSchema).min(1), // Custom 
+  possibleIngredients: z.array(ingredientsSchema).min(1),
 });
 
-// Define the structure for the checklist objects
 const radiolistSchema = z.object({
-  name: z.string(), // Name of the checklist (e.g., "תוספות")
-    options: z.array(optIngredientsSchema).min(1), // List of ingredients for this checklist (e.g., ["עגבנייה", "בצל", "חסה"])
+  name: z.string(),
+  options: z.array(optIngredientsSchema).min(1),
 });
-
 
 export const insertMenuItemSchema = createInsertSchema(menuItems).pick({
+  restaurantId: true,
   name: true,
   description: true,
   price: true,
@@ -100,14 +129,14 @@ export const insertMenuItemSchema = createInsertSchema(menuItems).pick({
   imageUrl: true,
 });
 
-// Create a custom schema that includes `checkLists` as an array of checklist objects
 export const customInsertMenuItemSchema = insertMenuItemSchema.extend({
-  checkLists: z.array(customChecklistSchema).min(1), // Custom validation for `checkLists` as an array of checklist objects
-  radioLists: z.array(radiolistSchema).min(1), // Custom validation for `checkLists` as an array of checklist objects  
+  checkLists: z.array(customChecklistSchema).min(1),
+  radioLists: z.array(radiolistSchema).min(1),
 });
 
 export const insertOrderSchema = createInsertSchema(orders).pick({
   tableId: true,
+  restaurantId: true,
   total: true,
 }).extend({
   items: z.array(z.object({
@@ -117,10 +146,10 @@ export const insertOrderSchema = createInsertSchema(orders).pick({
   }))
 });
 
-// You can now use this custom schema for your menu item creation
-export type InsertMenuItem = z.infer<typeof customInsertMenuItemSchema>;
-
+export type Restaurant = typeof restaurants.$inferSelect;
+export type InsertRestaurant = z.infer<typeof insertRestaurantSchema>;
 export type MenuItem = typeof menuItems.$inferSelect;
+export type InsertMenuItem = z.infer<typeof customInsertMenuItemSchema>;
 export type Order = typeof orders.$inferSelect;
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
 export type OrderItem = typeof orderItems.$inferSelect;

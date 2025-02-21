@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer } from "http";
 import { storage } from "./storage";
-import { insertOrderSchema, insertTableOrderSchema, insertFeedbackSchema } from "@shared/schema";
+import { insertOrderSchema, insertTableOrderSchema, insertFeedbackSchema, insertRestaurantSchema } from "@shared/schema";
 import Stripe from "stripe";
 
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -13,9 +13,35 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 export function registerRoutes(app: Express) {
   const server = createServer(app);
 
-  // Get all menu items
-  app.get("/api/menu", async (_req, res) => {
-    const items = await storage.getMenuItems();
+  // Restaurant routes
+  app.get("/api/restaurants", async (_req, res) => {
+    const restaurants = await storage.getRestaurants();
+    res.json(restaurants);
+  });
+
+  app.get("/api/restaurants/:id", async (req, res) => {
+    const restaurant = await storage.getRestaurant(Number(req.params.id));
+    if (!restaurant) {
+      res.status(404).json({ message: "Restaurant not found" });
+      return;
+    }
+    res.json(restaurant);
+  });
+
+  app.post("/api/restaurants", async (req, res) => {
+    const result = insertRestaurantSchema.safeParse(req.body);
+    if (!result.success) {
+      res.status(400).json({ message: "Invalid restaurant data" });
+      return;
+    }
+
+    const restaurant = await storage.createRestaurant(result.data);
+    res.status(201).json(restaurant);
+  });
+
+  // Get menu items for a specific restaurant
+  app.get("/api/restaurants/:restaurantId/menu", async (req, res) => {
+    const items = await storage.getMenuItems(Number(req.params.restaurantId));
     res.json(items);
   });
 
@@ -48,7 +74,7 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // Create a new order with payment
+  // Create a new order
   app.post("/api/orders", async (req, res) => {
     const result = insertOrderSchema.safeParse(req.body);
     if (!result.success) {
@@ -127,7 +153,6 @@ export function registerRoutes(app: Express) {
     }
   });
 
-
   // Submit feedback
   app.post("/api/feedback", async (req, res) => {
     const result = insertFeedbackSchema.safeParse(req.body);
@@ -140,9 +165,9 @@ export function registerRoutes(app: Express) {
     res.status(201).json(feedback);
   });
 
-  // Get feedback by table ID
-  app.get("/api/feedback/:tableId", async (req, res) => {
-    const feedback = await storage.getFeedbackByTableId(Number(req.params.tableId));
+  // Get feedback by restaurant ID
+  app.get("/api/restaurants/:restaurantId/feedback", async (req, res) => {
+    const feedback = await storage.getFeedbackByRestaurantId(Number(req.params.restaurantId));
     res.json(feedback);
   });
 
