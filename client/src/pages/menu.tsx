@@ -8,12 +8,27 @@ import CallWaiterButton from "@/components/call-waiter-button";
 import { type MenuItem } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
+// Frontend fetch example
+const fetchMenuItems = async () => {
+  const response = await fetch("http://localhost:5000/api/menu"); // Your backend URL
+  if (!response.ok) {
+    throw new Error("Failed to fetch menu items");
+  }
+  console.log(response)
+  return response.json();
+};
+
+
 export default function Menu() {
   const { tableId } = useParams();
   const { toast } = useToast();
 
+  // const { data: menuItems, isLoading } = useQuery<MenuItem[]>({
+  //   queryKey: ["/api/menu"],
+  // });
   const { data: menuItems, isLoading } = useQuery<MenuItem[]>({
     queryKey: ["/api/menu"],
+    queryFn: fetchMenuItems, // Use the fetchMenuItems function to fetch data
   });
 
   const handleAddToCart = (item: MenuItem ,

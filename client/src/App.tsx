@@ -21,6 +21,8 @@ function Router() {
       <Route path="/cart/:tableId" component={Cart} />
       <Route path="/orders/:tableId" component={Orders} />
       <Route path="/order/:orderId" component={OrderStatus} />
+      <Route path="/personal/:orderId" component={personal} />
+      <Route path="/tableorder/:orderId" component={table} />
       <Route path="/table-payment/:tableId" component={TablePayment} />
       <Route path="/payment-success/:tableId" component={PaymentSuccess} />
       <Route component={NotFound} />

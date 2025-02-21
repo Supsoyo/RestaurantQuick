@@ -70,7 +70,69 @@ export default function PaymentSuccess() {
                 <h2 className="text-lg font-semibold mb-4">נשמח לשמוע את דעתך!</h2>
                 <div className="space-y-4">
                   <div>
-                    <Label>דרג את החוויה שלך</Label>
+                    <Label>איך היה האוכל? </Label>
+                    <RadioGroup
+                      value={rating}
+                      onValueChange={setRating}
+                      className="flex gap-4 justify-center my-2"
+                    >
+                      {[5, 4, 3, 2, 1].map((value) => (
+                        <div key={value} className="flex flex-col items-center">
+                          <RadioGroupItem
+                            value={value.toString()}
+                            id={`rating-${value}`}
+                            className="sr-only"
+                          />
+                          <Label
+                            htmlFor={`rating-${value}`}
+                            className={`cursor-pointer p-2 rounded-full hover:bg-muted ${
+                              rating === value.toString() ? "text-primary" : ""
+                            }`}
+                          >
+                            <Star
+                              className={`h-8 w-8 ${
+                                rating === value.toString() ? "fill-current" : ""
+                              }`}
+                            />
+                          </Label>
+                          <span className="text-sm">{value}</span>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </div>
+                  <div>
+                    <Label>איך היה השירות?</Label>
+                    <RadioGroup
+                      value={rating}
+                      onValueChange={setRating}
+                      className="flex gap-4 justify-center my-2"
+                    >
+                      {[5, 4, 3, 2, 1].map((value) => (
+                        <div key={value} className="flex flex-col items-center">
+                          <RadioGroupItem
+                            value={value.toString()}
+                            id={`rating-${value}`}
+                            className="sr-only"
+                          />
+                          <Label
+                            htmlFor={`rating-${value}`}
+                            className={`cursor-pointer p-2 rounded-full hover:bg-muted ${
+                              rating === value.toString() ? "text-primary" : ""
+                            }`}
+                          >
+                            <Star
+                              className={`h-8 w-8 ${
+                                rating === value.toString() ? "fill-current" : ""
+                              }`}
+                            />
+                          </Label>
+                          <span className="text-sm">{value}</span>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </div>
+                  <div>
+                    <Label>איך היה חווית השימוש באפליקציה?</Label>
                     <RadioGroup
                       value={rating}
                       onValueChange={setRating}

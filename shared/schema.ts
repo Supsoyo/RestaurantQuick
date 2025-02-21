@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, decimal, timestamp ,jsonb} from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, decimal, timestamp, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -9,11 +9,8 @@ export const menuItems = pgTable("menu_items", {
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
   category: text("category").notNull(),
   imageUrl: text("image_url").notNull(),
-  checkLists: jsonb("check_lists").notNull(), // Use jsonb to store structured data
-  radioLists: jsonb("radio_lists").notNull(), // Use jsonb to store structured data
-  
-  
-  
+  checkLists: jsonb("check_lists").notNull(),
+  radioLists: jsonb("radio_lists").notNull(),
 });
 
 export const tables = pgTable("tables", {
@@ -37,6 +34,33 @@ export const orderItems = pgTable("order_items", {
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
 });
 
+export const tableOrders = pgTable("table_orders", {
+  id: serial("id").primaryKey(),
+  tableId: integer("table_id").notNull(),
+  orderDetails: jsonb("order_details").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const feedback = pgTable("feedback", {
+  id: serial("id").primaryKey(),
+  tableId: integer("table_id").notNull(),
+  rating: integer("rating").notNull(),
+  comment: text("comment"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Define schemas for table orders
+export const insertTableOrderSchema = createInsertSchema(tableOrders).pick({
+  tableId: true,
+  orderDetails: true,
+});
+
+// Define schema for feedback
+export const insertFeedbackSchema = createInsertSchema(feedback).pick({
+  tableId: true,
+  rating: true,
+  comment: true,
+});
 
 // Define the structure for the checklist objects
 const ingredientsSchema = z.object({
@@ -79,10 +103,8 @@ export const insertMenuItemSchema = createInsertSchema(menuItems).pick({
 // Create a custom schema that includes `checkLists` as an array of checklist objects
 export const customInsertMenuItemSchema = insertMenuItemSchema.extend({
   checkLists: z.array(customChecklistSchema).min(1), // Custom validation for `checkLists` as an array of checklist objects
-  radioLists: z.array(radiolistSchema).min(1), // Custom validation for `checkLists` as an array of checklist objects
-  
+  radioLists: z.array(radiolistSchema).min(1), // Custom validation for `checkLists` as an array of checklist objects  
 });
-
 
 export const insertOrderSchema = createInsertSchema(orders).pick({
   tableId: true,
@@ -95,13 +117,15 @@ export const insertOrderSchema = createInsertSchema(orders).pick({
   }))
 });
 
-
 // You can now use this custom schema for your menu item creation
 export type InsertMenuItem = z.infer<typeof customInsertMenuItemSchema>;
 
 export type MenuItem = typeof menuItems.$inferSelect;
-// export type InsertMenuItem = z.infer<typeof insertMenuItemSchema>;
 export type Order = typeof orders.$inferSelect;
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
 export type OrderItem = typeof orderItems.$inferSelect;
 export type Table = typeof tables.$inferSelect;
+export type TableOrder = typeof tableOrders.$inferSelect;
+export type InsertTableOrder = z.infer<typeof insertTableOrderSchema>;
+export type Feedback = typeof feedback.$inferSelect;
+export type InsertFeedback = z.infer<typeof insertFeedbackSchema>;

@@ -129,12 +129,13 @@ export default function MealCustomizationDialog({
   };
 
   const addDrinkFirst = () => {
+    if (!specialInstructions.includes('הגש משקה ראשון בבקשה')){
     const newInstructions = specialInstructions.trim()
-      ? `${specialInstructions.trim()}, drink first`
-      : "drink first";
+      ? `${specialInstructions.trim()}\n הגש משקה ראשון בבקשה`
+      : "הגש משקה ראשון בבקשה";
     setSpecialInstructions(newInstructions);
   };
-
+  }
   // Calculate additional cost from selected ingredients and radio options
   const calculateAdditionalCost = () => {
     let additionalCost = 0;
