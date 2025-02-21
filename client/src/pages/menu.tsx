@@ -5,45 +5,55 @@ import { Button } from "@/components/ui/button";
 import { ShoppingCart } from "lucide-react";
 import MenuItemCard from "@/components/menu-item-card";
 import CallWaiterButton from "@/components/call-waiter-button";
-import { type MenuItem } from "@shared/schema";
+import { type MenuItem, type Restaurant } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Menu() {
   const { tableId } = useParams();
   const { toast } = useToast();
 
-  const { data: menuItems, isLoading } = useQuery<MenuItem[]>({
-    queryKey: ["/api/menu"],
+  const { data: restaurant, isLoading: isLoadingRestaurant } = useQuery<Restaurant>({
+    queryKey: ['/api/restaurants', tableId],
+    queryFn: async () => {
+      const response = await fetch(`/api/restaurants/${tableId}`);
+      if (!response.ok) throw new Error('Failed to fetch restaurant');
+      return response.json();
+    },
   });
-  
 
-  const handleAddToCart = (item: MenuItem ,
+  const { data: menuItems, isLoading: isLoadingMenu } = useQuery<MenuItem[]>({
+    queryKey: ['/api/restaurants', tableId, 'menu'],
+    queryFn: async () => {
+      const response = await fetch(`/api/restaurants/${tableId}/menu`);
+      if (!response.ok) throw new Error('Failed to fetch menu items');
+      return response.json();
+    },
+    enabled: !!restaurant,
+  });
+
+  const handleAddToCart = (
+    item: MenuItem,
     quantity: number,
-    customizations: {
+    customizations?: {
       excludeIngredients: string[];
       specialInstructions: string;
+      selectedIngredients: Record<string, string[]>;
+      selectedRadioOptions: Record<string, string>;
     }
   ) => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-    const itemAndQuantity = item
-    itemAndQuantity.quantity = quantity;
-    itemAndQuantity.customizations = customizations;
-    cart.push(itemAndQuantity);
+    const cartItem = {
+      ...item,
+      quantity,
+      customizations: customizations || {
+        excludeIngredients: [],
+        specialInstructions: "",
+        selectedIngredients: {},
+        selectedRadioOptions: {},
+      },
+    };
+    cart.push(cartItem);
     localStorage.setItem("cart", JSON.stringify(cart));
-    // localStorage.removeItem("cart");
-
-
-    // Accessing quantity for each item
-    // const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-    // console.log("🔍 Current Cart Before Adding Item:", JSON.stringify(cart, null, 2));
-
-    // console.log("vsdvdv 37");  // Should output the 
-    // console.log("quantity ",quantity);  // Should output the 
-    console.log(`Item: ${item.name}, Quantity: ${quantity}`);
-    // const quantityPropertyNames = Object.keys(item.quantity);
-    // console.log(quantityPropertyNames); // ["amount"]
-
-
 
     toast({
       title: "נוסף לסל",
@@ -52,8 +62,7 @@ export default function Menu() {
           ? ` (ללא ${customizations.excludeIngredients.join(", ")})`
           : ""
       }`,
-      onClick: () => location.href = `/cart/${tableId}`, // Redirects on click
-
+      onClick: () => location.href = `/cart/${tableId}`,
     });
   };
 
@@ -64,7 +73,7 @@ export default function Menu() {
     }
   };
 
-  if (isLoading) {
+  if (isLoadingRestaurant || isLoadingMenu) {
     return (
       <div className="p-4 space-y-4" dir="rtl">
         {[...Array(4)].map((_, i) => (
@@ -74,13 +83,24 @@ export default function Menu() {
     );
   }
 
-  const categories = [...new Set(menuItems?.map(item => item.category))];
+  if (!restaurant || !menuItems) {
+    return (
+      <div className="p-4 text-center" dir="rtl">
+        <h1 className="text-2xl font-bold">מסעדה לא נמצאה</h1>
+      </div>
+    );
+  }
+
+  const categories = [...new Set(menuItems.map(item => item.category))];
 
   return (
     <div className="min-h-screen pb-20" dir="rtl">
       <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b">
         <div className="flex justify-between items-center max-w-4xl mx-auto p-4">
-          <h1 className="text-2xl font-bold">מה בא לנו היום?</h1>
+          <div>
+            <h1 className="text-2xl font-bold">{restaurant.name}</h1>
+            <p className="text-muted-foreground">{restaurant.description}</p>
+          </div>
 
           <div className="flex gap-2">
             <Link href={`/orders/${tableId}`}>
@@ -124,14 +144,12 @@ export default function Menu() {
             </h2>
             <div className="grid gap-4 sm:grid-cols-1">
               {menuItems
-                ?.filter(item => item.category === category)
+                .filter(item => item.category === category)
                 .map(item => (
                   <MenuItemCard
                     key={item.id}
                     item={item}
-                    onAddToCart={(item, quantity, customizations) =>
-                      handleAddToCart(item, quantity, customizations) // Correct way
-                    }
+                    onAddToCart={handleAddToCart}
                   />
                 ))}
             </div>
