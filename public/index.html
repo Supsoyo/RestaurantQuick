@@ -40,16 +40,18 @@
   </div>
 
   <script>
-    // Initialize Replit Auth
     window.onload = () => {
+      console.log('ReplitAuth:', window.ReplitAuth); // Check if ReplitAuth is loaded
+
       const loginBtn = document.getElementById("login-btn");
       const logoutBtn = document.getElementById("logout-btn");
       const userInfo = document.getElementById("user-info");
       const userName = document.getElementById("user-name");
       const userAvatar = document.getElementById("user-avatar");
 
-      // Listen for authentication changes
+      // Ensure ReplitAuth is available before proceeding
       if (window.ReplitAuth) {
+        console.log('ReplitAuth is available');
         window.ReplitAuth.onAuth((user) => {
           if (user) {
             // If user is authenticated, show their info
@@ -66,16 +68,21 @@
 
         // Handle login button click
         loginBtn.addEventListener('click', () => {
+          console.log('Attempting to log in...');
           window.ReplitAuth.login();
         });
 
         // Handle logout button click
         logoutBtn.addEventListener('click', () => {
+          console.log('Attempting to log out...');
           window.ReplitAuth.logout();
         });
+      } else {
+        console.error('ReplitAuth is not available.');
       }
     };
   </script>
+
 
 </body>
 </html>
