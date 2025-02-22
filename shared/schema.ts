@@ -199,6 +199,9 @@ export const personalOrderSchema = z.object({
 export const tableOrderDetailsSchema = z.object({
   orderees: z.array(z.string()),
   personalOrders: z.array(personalOrderSchema),
+  userId: z.string().optional(),
+  userEmail: z.string().optional(),
+  userName: z.string().optional(),
 });
 
 export const customInsertTableOrderSchema = insertTableOrderSchema.extend({

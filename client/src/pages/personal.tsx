@@ -28,28 +28,34 @@ export default function Personal() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [items, setItems] = useState<CartItem[]>(() =>
-    JSON.parse(localStorage.getItem("cart") || "[]")
+    JSON.parse(localStorage.getItem(`cart-${user?.uid}`) || "[]")
   );
 
   const { data: tableOrders, isLoading } = useQuery({
-    queryKey: ["table-orders", tableId],
+    queryKey: ["table-orders", tableId, user?.uid],
     queryFn: async () => {
-      const response = await apiRequest(`/api/table-orders/${tableId}`);
+      const response = await apiRequest(`/api/table-orders/${tableId}?userId=${user?.uid}`);
       return response.json();
     },
+    enabled: !!user?.uid, // Only fetch when user is logged in
   });
 
   const createTableOrderMutation = useMutation({
     mutationFn: async (orderData: any) => {
       const response = await apiRequest("/api/table-orders", {
         method: "POST",
-        body: JSON.stringify(orderData),
+        body: JSON.stringify({
+          ...orderData,
+          userId: user?.uid,
+          userEmail: user?.email,
+          userName: user?.displayName
+        }),
       });
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["table-orders", tableId] });
-      localStorage.removeItem("cart");
+      queryClient.invalidateQueries({ queryKey: ["table-orders", tableId, user?.uid] });
+      localStorage.removeItem(`cart-${user?.uid}`);
       setLocation(`/tableorder/${tableId}`);
     },
     onError: (error) => {
@@ -126,7 +132,7 @@ export default function Personal() {
     if (newQuantity < 1) {
       const newItems = items.filter((_, i) => i !== index);
       setItems(newItems);
-      localStorage.setItem("cart", JSON.stringify(newItems));
+      localStorage.setItem(`cart-${user?.uid}`, JSON.stringify(newItems));
       return;
     }
 
@@ -134,7 +140,7 @@ export default function Personal() {
       i === index ? { ...item, quantity: newQuantity } : item
     );
     setItems(newItems);
-    localStorage.setItem("cart", JSON.stringify(newItems));
+    localStorage.setItem(`cart-${user?.uid}`, JSON.stringify(newItems));
   };
 
   const subtotal = items.reduce(
@@ -166,6 +172,11 @@ export default function Personal() {
           חזרה לתפריט
         </Button>
         <h1 className="text-2xl font-bold">ההזמנה שלך</h1>
+        {user && (
+          <p className="text-sm text-muted-foreground mt-1">
+            מחובר כ- {user.displayName || user.email}
+          </p>
+        )}
       </header>
 
       {items.length === 0 ? (

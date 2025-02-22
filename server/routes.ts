@@ -72,7 +72,16 @@ export function registerRoutes(app: Express) {
         return;
       }
 
-      const tableOrder = await storage.createTableOrder(result.data);
+      // Add user information to the order details
+      const tableOrder = await storage.createTableOrder({
+        ...result.data,
+        orderDetails: {
+          ...result.data.orderDetails,
+          userId: req.body.userId,
+          userEmail: req.body.userEmail,
+          userName: req.body.userName,
+        },
+      });
       res.status(201).json(tableOrder);
     } catch (error) {
       console.error("Error creating table order:", error);
@@ -82,8 +91,18 @@ export function registerRoutes(app: Express) {
 
   app.get("/api/table-orders/:tableId", async (req, res) => {
     try {
+      const userId = req.query.userId as string;
       const tableOrders = await storage.getTableOrdersByTableId(Number(req.params.tableId));
-      res.json(tableOrders);
+
+      // Filter orders by user ID if provided
+      const filteredOrders = userId
+        ? tableOrders.filter(order => 
+            order.orderDetails.userId === userId ||
+            order.orderDetails.personalOrders.some(po => po.ordererName === userId)
+          )
+        : tableOrders;
+
+      res.json(filteredOrders);
     } catch (error) {
       console.error("Error fetching table orders:", error);
       res.status(500).json({ message: "Failed to fetch table orders" });
