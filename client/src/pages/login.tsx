@@ -1,11 +1,26 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/auth-context";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
+import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
 
 export default function Login() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
+  const { toast } = useToast();
+  const [searchParams] = useSearch();
+
+  useEffect(() => {
+    const error = searchParams.get("error");
+    if (error === "auth_failed") {
+      toast({
+        title: "Authentication Failed",
+        description: "Unable to sign in. Please try again.",
+        variant: "destructive",
+      });
+    }
+  }, [searchParams, toast]);
 
   // If user is already logged in, redirect to home
   if (user) {
@@ -13,8 +28,8 @@ export default function Login() {
     return null;
   }
 
-  const login = () => {
-    window.location.href = `https://replit.com/auth_with_repl_site?domain=${window.location.hostname}`;
+  const handleLogin = () => {
+    window.location.href = "/api/auth/login";
   };
 
   return (
@@ -27,7 +42,7 @@ export default function Login() {
           <Button
             variant="default"
             className="w-full flex items-center justify-center gap-2"
-            onClick={login}
+            onClick={handleLogin}
           >
             התחבר עם Replit
           </Button>

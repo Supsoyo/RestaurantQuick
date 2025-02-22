@@ -16,12 +16,10 @@ export default function Home() {
     queryKey: ['/api/restaurants'],
     queryFn: async () => {
       const response = await fetch('/api/restaurants');
-      // console.log(process.env)
       if (!response.ok) throw new Error('Failed to fetch restaurants');
       return response.json() as Promise<Restaurant[]>;
     },
   });
-  // console.log(process.env)
 
   const handleRestaurantSelect = (restaurantId: number) => {
     if (name.trim()) {

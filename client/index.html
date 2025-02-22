@@ -1,81 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Replit Authentication Test</title>
-  <script src="https://replit.com/public/js/repl-auth-v2.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin-top: 50px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    #user-info {
-      display: none;
-      margin-top: 20px;
-    }
-    #user-avatar {
-      border-radius: 50%;
-      width: 100px;
-      height: 100px;
-    }
-  </style>
-</head>
-<body>
-
-  <h1>Replit Authentication Test</h1>
-  <button id="login-btn">Login with Replit</button>
-
-  <div id="user-info">
-    <h2>Welcome, <span id="user-name"></span>!</h2>
-    <img id="user-avatar" src="" alt="User Avatar" />
-    <br />
-    <button id="logout-btn">Logout</button>
-  </div>
-
-  <script>
-    // Initialize Replit Auth
-    window.onload = () => {
-      const loginBtn = document.getElementById("login-btn");
-      const logoutBtn = document.getElementById("logout-btn");
-      const userInfo = document.getElementById("user-info");
-      const userName = document.getElementById("user-name");
-      const userAvatar = document.getElementById("user-avatar");
-
-      // Listen for authentication changes
-      if (window.ReplitAuth) {
-        window.ReplitAuth.onAuth((user) => {
-          if (user) {
-            // If user is authenticated, show their info
-            userName.textContent = user.name;
-            userAvatar.src = user.image;
-            userInfo.style.display = "block";
-            loginBtn.style.display = "none"; // Hide login button after authentication
-          } else {
-            // If user is not authenticated, show the login button
-            userInfo.style.display = "none";
-            loginBtn.style.display = "block";
-          }
-        });
-
-        // Handle login button click
-        loginBtn.addEventListener('click', () => {
-          window.ReplitAuth.login();
-        });
-
-        // Handle logout button click
-        logoutBtn.addEventListener('click', () => {
-          window.ReplitAuth.logout();
-        });
-      }
-    };
-  </script>
-
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.firebaseio.com https://*.googleapis.com https://*.stripe.com https://*.gstatic.com;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      font-src 'self' https://fonts.gstatic.com;
+      img-src 'self' data: https: blob:;
+      connect-src 'self' https://*.firebaseio.com https://*.googleapis.com wss://*.firebaseio.com https://*.stripe.com https://identitytoolkit.googleapis.com https://*.gstatic.com;
+      frame-src 'self' https://*.firebaseapp.com https://*.googleapis.com https://*.stripe.com;
+      form-action 'self';
+    " />
+    <title>Restaurant Ordering System</title>
+    <meta name="description" content="A comprehensive mobile-first restaurant ordering system" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>

@@ -2,9 +2,6 @@ modules = ["nodejs-20", "web", "postgresql-16"]
 run = "npm run dev"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
-[env]
-REPLIT_AUTH="true"
-
 [nix]
 channel = "stable-24_05"
 
@@ -12,10 +9,6 @@ channel = "stable-24_05"
 deploymentTarget = "cloudrun"
 build = ["npm", "run", "build"]
 run = ["npm", "run", "start"]
-
-[[ports]]
-localPort = 3000
-externalPort = 3000
 
 [[ports]]
 localPort = 5000
@@ -47,4 +40,3 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
-
