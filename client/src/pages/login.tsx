@@ -1,11 +1,26 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/auth-context";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
+import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
 
 export default function Login() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
+  const { toast } = useToast();
+  const [searchParams] = useSearch();
+
+  useEffect(() => {
+    const error = searchParams.get("error");
+    if (error === "auth_failed") {
+      toast({
+        title: "Authentication Failed",
+        description: "Unable to sign in. Please try again.",
+        variant: "destructive",
+      });
+    }
+  }, [searchParams, toast]);
 
   // If user is already logged in, redirect to home
   if (user) {

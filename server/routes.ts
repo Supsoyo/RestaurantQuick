@@ -15,7 +15,13 @@ export function registerRoutes(app: Express) {
 
   // Auth routes
   app.get("/api/auth/login", (_req, res) => {
-    res.redirect("https://replit.com/auth_with_repl_site?domain=" + process.env.REPLIT_DOMAIN);
+    // Add connect.sid to the cookie to maintain session
+    res.cookie('connect.sid', '', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax'
+    });
+    res.redirect(`https://replit.com/auth_with_repl_site?domain=${process.env.REPLIT_DOMAIN}`);
   });
 
   app.get("/api/auth/callback", (req, res) => {
@@ -26,11 +32,18 @@ export function registerRoutes(app: Express) {
       profileImage: req.headers["x-replit-user-profile-image"] as string,
     };
 
-    if (userData) {
-      res.redirect("/");
-    } else {
-      res.redirect("/login");
+    if (!userData) {
+      console.error("Authentication failed - No user data received");
+      res.redirect("/login?error=auth_failed");
+      return;
     }
+
+    // Set session data
+    if (req.session) {
+      req.session.user = userData;
+    }
+
+    res.redirect("/");
   });
 
   app.get("/api/auth/user", (req, res) => {
@@ -40,7 +53,12 @@ export function registerRoutes(app: Express) {
       profileImage: req.headers["x-replit-user-profile-image"] as string,
     };
 
-    res.json({ user: userData || null });
+    if (!userData) {
+      res.status(401).json({ user: null, error: "Not authenticated" });
+      return;
+    }
+
+    res.json({ user: userData });
   });
 
   // Restaurant routes
