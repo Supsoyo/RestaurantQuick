@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { type MenuItem } from '@shared/schema';
 import MealCustomizationDialog from './meal-customization-dialog';
+import { useAuth } from '@/contexts/auth-context';
 
 interface MenuItemCardProps {
   item: MenuItem;
@@ -12,20 +13,40 @@ interface MenuItemCardProps {
       excludeIngredients: string[];
       specialInstructions: string;
       selectedIngredients: Record<string, string[]>;
-      selectedRadioOptions: Record<string, string[]>;
+      selectedRadioOptions: Record<string, string>;
   }) => void;
 }
 
 export default function MenuItemCard({ item, onAddToCart }: MenuItemCardProps) {
   const [showCustomization, setShowCustomization] = useState(false);
+  const { user } = useAuth();
 
   const handleAddToCart = (customizations: { 
     excludeIngredients: string[];
     specialInstructions: string;
     selectedIngredients: Record<string, string[]>;
-    selectedRadioOptions: Record<string, string[]>;
+    selectedRadioOptions: Record<string, string>;
     quantity: number;
   }) => {
+    // Get existing cart items for this user
+    const existingCart = JSON.parse(localStorage.getItem(`cart-${user?.uid}`) || '[]');
+
+    // Add new item to cart
+    const newItem = {
+      ...item,
+      quantity: customizations.quantity,
+      customizations: {
+        excludeIngredients: customizations.excludeIngredients,
+        specialInstructions: customizations.specialInstructions,
+        selectedIngredients: customizations.selectedIngredients,
+        selectedRadioOptions: customizations.selectedRadioOptions,
+      }
+    };
+
+    // Update cart in localStorage
+    localStorage.setItem(`cart-${user?.uid}`, JSON.stringify([...existingCart, newItem]));
+
+    // Call the original onAddToCart
     onAddToCart(
       item,
       customizations.quantity,

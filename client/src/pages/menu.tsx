@@ -7,10 +7,12 @@ import MenuItemCard from "@/components/menu-item-card";
 import CallWaiterButton from "@/components/call-waiter-button";
 import { type MenuItem, type Restaurant } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function Menu() {
   const { tableId } = useParams();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const { data: restaurant, isLoading: isLoadingRestaurant } = useQuery<Restaurant>({
     queryKey: ['/api/restaurants', tableId],
@@ -41,7 +43,16 @@ export default function Menu() {
       selectedRadioOptions: Record<string, string>;
     }
   ) => {
-    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    if (!user) {
+      toast({
+        title: "נדרשת התחברות",
+        description: "יש להתחבר כדי להוסיף פריטים לסל",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const cart = JSON.parse(localStorage.getItem(`cart-${user.uid}`) || "[]");
     const cartItem = {
       ...item,
       quantity,
@@ -53,7 +64,7 @@ export default function Menu() {
       },
     };
     cart.push(cartItem);
-    localStorage.setItem("cart", JSON.stringify(cart));
+    localStorage.setItem(`cart-${user.uid}`, JSON.stringify(cart));
 
     toast({
       title: "נוסף לסל",
@@ -62,7 +73,7 @@ export default function Menu() {
           ? ` (ללא ${customizations.excludeIngredients.join(", ")})`
           : ""
       }`,
-      onClick: () => location.href = `/cart/${tableId}`,
+      onClick: () => location.href = `/personal/${tableId}`,
     });
   };
 
