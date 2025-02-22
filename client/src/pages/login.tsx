@@ -14,6 +14,7 @@ export default function Login() {
     setLocation("/");
     return null;
   }
+  console.log(window.location.href);
 
   const handleGoogleSignIn = async () => {
     try {
