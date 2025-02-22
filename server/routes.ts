@@ -13,6 +13,36 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 export function registerRoutes(app: Express) {
   const server = createServer(app);
 
+  // Auth routes
+  app.get("/api/auth/login", (_req, res) => {
+    res.redirect("https://replit.com/auth_with_repl_site?domain=" + process.env.REPLIT_DOMAIN);
+  });
+
+  app.get("/api/auth/callback", (req, res) => {
+    // Get user data from Replit auth
+    const userData = req.headers["x-replit-user-id"] && {
+      id: req.headers["x-replit-user-id"] as string,
+      name: req.headers["x-replit-user-name"] as string,
+      profileImage: req.headers["x-replit-user-profile-image"] as string,
+    };
+
+    if (userData) {
+      res.redirect("/");
+    } else {
+      res.redirect("/login");
+    }
+  });
+
+  app.get("/api/auth/user", (req, res) => {
+    const userData = req.headers["x-replit-user-id"] && {
+      id: req.headers["x-replit-user-id"] as string,
+      name: req.headers["x-replit-user-name"] as string,
+      profileImage: req.headers["x-replit-user-profile-image"] as string,
+    };
+
+    res.json({ user: userData || null });
+  });
+
   // Restaurant routes
   app.get("/api/restaurants", async (_req, res) => {
     const restaurants = await storage.getRestaurants();

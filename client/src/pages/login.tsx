@@ -1,9 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { signInWithGoogle } from "@/lib/firebase";
 import { useAuth } from "@/contexts/auth-context";
 import { useLocation } from "wouter";
-import { FcGoogle } from "react-icons/fc";
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -14,15 +12,9 @@ export default function Login() {
     setLocation("/");
     return null;
   }
-  console.log(window.location.href);
 
-  const handleGoogleSignIn = async () => {
-    try {
-      await signInWithGoogle();
-      setLocation("/");
-    } catch (error) {
-      console.error("Failed to sign in:", error);
-    }
+  const handleLogin = () => {
+    window.location.href = "/api/auth/login";
   };
 
   return (
@@ -33,12 +25,11 @@ export default function Login() {
         </CardHeader>
         <CardContent>
           <Button
-            variant="outline"
+            variant="default"
             className="w-full flex items-center justify-center gap-2"
-            onClick={handleGoogleSignIn}
+            onClick={handleLogin}
           >
-            <FcGoogle className="h-5 w-5" />
-            התחבר עם Google
+            התחבר עם Replit
           </Button>
         </CardContent>
       </Card>

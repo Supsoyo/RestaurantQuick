@@ -1,5 +1,10 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { auth, onAuthStateChanged, type User } from "@/lib/firebase";
+
+type User = {
+  id: string;
+  name: string;
+  profileImage: string;
+};
 
 type AuthContextType = {
   user: User | null;
@@ -16,12 +21,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
+    // Check if user is logged in on mount
+    fetch("/api/auth/user")
+      .then(res => res.json())
+      .then(data => {
+        if (data.user) {
+          setUser(data.user);
+        }
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+      });
   }, []);
 
   return (
