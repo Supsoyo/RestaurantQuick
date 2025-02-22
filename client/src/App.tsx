@@ -11,6 +11,7 @@ import OrderStatus from "@/pages/order-status";
 import TablePayment from "@/pages/table-payment";
 import PaymentSuccess from "@/pages/payment-success";
 import Login from "@/pages/login";
+import Personal from "@/pages/personal";
 import { AuthProvider, useAuth } from "@/contexts/auth-context";
 import { useLocation } from "wouter";
 import { useEffect } from "react";
@@ -43,6 +44,9 @@ function Router() {
       </Route>
       <Route path="/cart/:tableId">
         {(params) => <ProtectedRoute component={Cart} {...params} />}
+      </Route>
+      <Route path="/personal/:tableId">
+        {(params) => <ProtectedRoute component={Personal} {...params} />}
       </Route>
       <Route path="/orders/:tableId">
         {(params) => <ProtectedRoute component={Orders} {...params} />}
