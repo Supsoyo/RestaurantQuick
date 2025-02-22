@@ -1,26 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { signInWithGoogle } from "@/lib/firebase";
 import { useAuth } from "@/contexts/auth-context";
-import { useLocation, useSearch } from "wouter";
+import { useLocation } from "wouter";
+import { FcGoogle } from "react-icons/fc";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect } from "react";
 
 export default function Login() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
-  const [searchParams] = useSearch();
-
-  useEffect(() => {
-    const error = searchParams.get("error");
-    if (error === "auth_failed") {
-      toast({
-        title: "Authentication Failed",
-        description: "Unable to sign in. Please try again.",
-        variant: "destructive",
-      });
-    }
-  }, [searchParams, toast]);
 
   // If user is already logged in, redirect to home
   if (user) {
@@ -28,8 +17,18 @@ export default function Login() {
     return null;
   }
 
-  const handleLogin = () => {
-    window.location.href = "/api/auth/login";
+  const handleGoogleSignIn = async () => {
+    try {
+      await signInWithGoogle();
+      setLocation("/");
+    } catch (error) {
+      console.error("Failed to sign in:", error);
+      toast({
+        title: "Authentication Failed",
+        description: "Unable to sign in with Google. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -40,11 +39,12 @@ export default function Login() {
         </CardHeader>
         <CardContent>
           <Button
-            variant="default"
+            variant="outline"
             className="w-full flex items-center justify-center gap-2"
-            onClick={handleLogin}
+            onClick={handleGoogleSignIn}
           >
-            התחבר עם Replit
+            <FcGoogle className="h-5 w-5" />
+            התחבר עם Google
           </Button>
         </CardContent>
       </Card>

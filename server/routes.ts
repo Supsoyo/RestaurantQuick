@@ -13,54 +13,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 export function registerRoutes(app: Express) {
   const server = createServer(app);
 
-  // Auth routes
-  app.get("/api/auth/login", (_req, res) => {
-    // Add connect.sid to the cookie to maintain session
-    res.cookie('connect.sid', '', {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax'
-    });
-    res.redirect(`https://replit.com/auth_with_repl_site?domain=${process.env.REPLIT_DOMAIN}`);
-  });
-
-  app.get("/api/auth/callback", (req, res) => {
-    // Get user data from Replit auth
-    const userData = req.headers["x-replit-user-id"] && {
-      id: req.headers["x-replit-user-id"] as string,
-      name: req.headers["x-replit-user-name"] as string,
-      profileImage: req.headers["x-replit-user-profile-image"] as string,
-    };
-
-    if (!userData) {
-      console.error("Authentication failed - No user data received");
-      res.redirect("/login?error=auth_failed");
-      return;
-    }
-
-    // Set session data
-    if (req.session) {
-      req.session.user = userData;
-    }
-
-    res.redirect("/");
-  });
-
-  app.get("/api/auth/user", (req, res) => {
-    const userData = req.headers["x-replit-user-id"] && {
-      id: req.headers["x-replit-user-id"] as string,
-      name: req.headers["x-replit-user-name"] as string,
-      profileImage: req.headers["x-replit-user-profile-image"] as string,
-    };
-
-    if (!userData) {
-      res.status(401).json({ user: null, error: "Not authenticated" });
-      return;
-    }
-
-    res.json({ user: userData });
-  });
-
   // Restaurant routes
   app.get("/api/restaurants", async (_req, res) => {
     const restaurants = await storage.getRestaurants();
