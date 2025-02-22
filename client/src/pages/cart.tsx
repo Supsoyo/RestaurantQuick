@@ -38,7 +38,7 @@ export default function Cart() {
   const { toast } = useToast();
   const [showPayment, setShowPayment] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
-  const [tipPercentage, setTipPercentage] = useState("10"); // Default 10% tip
+  const [tipPercentage, setTipPercentage] = useState("10"); // Default 10% tip jbjb3232
   const [customTipAmount, setCustomTipAmount] = useState("");
   const [items, setItems] = useState<CartItem[]>(() =>
     JSON.parse(localStorage.getItem("cart") || "[]")
